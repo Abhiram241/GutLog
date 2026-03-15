@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "c4e2d3e4-33d7-4864-8aa7-f2b4ee6884ce"
+      }
+    },
+    "android": {
+      "package": "com.abhiram24x.gutlog"
+    }
+  }
+}

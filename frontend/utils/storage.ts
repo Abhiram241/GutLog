@@ -75,6 +75,7 @@ export const defaultSettings: SettingsData = {
   geminiApiKey: "",
   city: "Bengaluru",
   dailyWaterGoal: 2500,
+  themePreference: "system",
 };
 
 const normalizeLog = (raw: Partial<DayLog> | null): DayLog => {
@@ -111,6 +112,10 @@ export const getSettings = async () => {
       typeof parsed.dailyWaterGoal === "number" && parsed.dailyWaterGoal > 0
         ? parsed.dailyWaterGoal
         : defaultSettings.dailyWaterGoal,
+    themePreference:
+      parsed.themePreference === "dark" || parsed.themePreference === "light"
+        ? parsed.themePreference
+        : "system",
   } as SettingsData;
 };
 

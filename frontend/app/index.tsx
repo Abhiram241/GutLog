@@ -1,5 +1,6 @@
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -14,6 +15,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  useColorScheme,
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -95,8 +97,18 @@ const chipColor = {
   inactiveText: theme.colors.textSecondary,
 };
 
+const darkPalette = {
+  background: "#0E141E",
+  surface: "#18202D",
+  mutedSurface: "#202A38",
+  textPrimary: "#EDF4FF",
+  textSecondary: "#C2CEDF",
+  border: "#2A374A",
+};
+
 export default function Index() {
   const insets = useSafeAreaInsets();
+  const systemColorScheme = useColorScheme();
 
   const [activeTab, setActiveTab] = useState<AppTab>("home");
   const [extraPage, setExtraPage] = useState<ExtraPage | null>(null);
@@ -109,6 +121,8 @@ export default function Index() {
   const todayKey = getTodayDateKey();
   const [currentDateKey, setCurrentDateKey] = useState(todayKey);
   const [settingsMessage, setSettingsMessage] = useState("");
+  const [showBootSpinner, setShowBootSpinner] = useState(true);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const [itemModalMeal, setItemModalMeal] = useState<MealType | null>(null);
   const [itemName, setItemName] = useState("");
@@ -136,6 +150,20 @@ export default function Index() {
   const [reviewData, setReviewData] = useState<AIReviewResult | null>(null);
 
   const currentLog = allLogs[currentDateKey] ?? createEmptyDayLog();
+  const isDarkMode =
+    settings.themePreference === "system"
+      ? systemColorScheme === "dark"
+      : settings.themePreference === "dark";
+  const currentPalette = isDarkMode
+    ? darkPalette
+    : {
+        background: theme.colors.background,
+        surface: theme.colors.surface,
+        mutedSurface: "#F3EFEA",
+        textPrimary: theme.colors.textPrimary,
+        textSecondary: theme.colors.textSecondary,
+        border: "#E9E1D8",
+      };
 
   const upsertLog = useCallback(async (dateKey: string, nextLog: DayLog) => {
     setAllLogs((prev) => ({ ...prev, [dateKey]: nextLog }));
@@ -178,6 +206,20 @@ export default function Index() {
   }, [todayKey]);
 
   useEffect(() => {
+    const timer = setTimeout(() => setShowBootSpinner(false), 900);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
+    const hideSub = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  useEffect(() => {
     setStoolDate(currentDateKey);
   }, [currentDateKey]);
 
@@ -192,6 +234,28 @@ export default function Index() {
     () => medsMaster.filter((med) => currentLog.medsTaken[med.id]?.taken).length,
     [currentLog.medsTaken, medsMaster]
   );
+
+  const dailyMacroSummary = useMemo(() => {
+    const summary = {
+      calories: 0,
+      protein: 0,
+      carbohydrates: 0,
+      fat: 0,
+      hasGenerated: false,
+    };
+
+    mealMeta.forEach((meal) => {
+      const macro = currentLog.meals[meal.key].macro;
+      if (!macro) return;
+      summary.hasGenerated = true;
+      summary.calories += Number(macro.calories || 0);
+      summary.protein += Number(macro.protein || 0);
+      summary.carbohydrates += Number(macro.carbs || 0);
+      summary.fat += Number(macro.fat || 0);
+    });
+
+    return summary;
+  }, [currentLog.meals]);
 
   const waterStreak = useMemo(() => {
     let streak = 0;
@@ -395,6 +459,13 @@ export default function Index() {
     setSettingsMessage("Settings saved locally on this device.");
   };
 
+  const saveApiKeyOnly = async () => {
+    const next = { ...settings, geminiApiKey: settings.geminiApiKey.trim() };
+    setSettingsState(next);
+    await saveSettings(next);
+    setSettingsMessage("API key saved.");
+  };
+
   const handleResetToday = async () => {
     const resetLog = await resetDayLog(todayKey);
     setAllLogs((prev) => ({ ...prev, [todayKey]: resetLog }));
@@ -441,8 +512,8 @@ export default function Index() {
 
   const renderScreenHeader = (title: string, subtitle?: string) => (
     <View style={styles.headerWrap}>
-      <Text style={styles.screenTitle}>{title}</Text>
-      {subtitle ? <Text style={styles.screenSubtitle}>{subtitle}</Text> : null}
+      <Text style={[styles.screenTitle, isDarkMode && styles.titleDark]}>{title}</Text>
+      {subtitle ? <Text style={[styles.screenSubtitle, isDarkMode && styles.textSecondaryDark]}>{subtitle}</Text> : null}
     </View>
   );
 
@@ -475,45 +546,65 @@ export default function Index() {
 
   const homeScreen = (
     <ScrollView contentContainerStyle={[styles.contentWrap, { paddingBottom: insets.bottom + 120 }]}>
-      {renderScreenHeader("Crohn's Food Diary", friendlyDate(currentDateKey))}
+      {renderScreenHeader("GutLogs", friendlyDate(currentDateKey))}
 
-      <View style={styles.dateSwitcher}>
+      <View style={[styles.dateSwitcher, isDarkMode && styles.dateSwitcherDark]}>
         <Pressable
           onPress={() => setCurrentDateKey((prev) => shiftDateKey(prev, -1))}
-          style={({ pressed }) => [styles.circleIconButton, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.circleIconButton, isDarkMode && styles.circleIconButtonDark, pressed && styles.pressed]}
         >
-          <Feather name="chevron-left" size={18} color={theme.colors.textPrimary} />
+          <Feather name="chevron-left" size={18} color={currentPalette.textPrimary} />
         </Pressable>
-        <Text style={styles.switcherText}>{currentDateKey}</Text>
+        <Text style={[styles.switcherText, isDarkMode && styles.titleDark]}>{currentDateKey}</Text>
         <Pressable
           onPress={() => setCurrentDateKey((prev) => (prev === todayKey ? prev : shiftDateKey(prev, 1)))}
-          style={({ pressed }) => [styles.circleIconButton, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.circleIconButton, isDarkMode && styles.circleIconButtonDark, pressed && styles.pressed]}
         >
-          <Feather name="chevron-right" size={18} color={theme.colors.textPrimary} />
+          <Feather name="chevron-right" size={18} color={currentPalette.textPrimary} />
         </Pressable>
       </View>
 
       <View style={styles.summaryStrip}>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryValue}>{totalFoodItems}</Text>
-          <Text style={styles.summaryLabel}>Food items</Text>
+        <View style={[styles.summaryCard, isDarkMode && styles.summaryCardDark]}>
+          <Text style={[styles.summaryValue, isDarkMode && styles.titleDark]}>{totalFoodItems}</Text>
+          <Text style={[styles.summaryLabel, isDarkMode && styles.textSecondaryDark]}>Food items</Text>
         </View>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryValue}>{currentLog.waterMl}ml</Text>
-          <Text style={styles.summaryLabel}>Water</Text>
+        <View style={[styles.summaryCard, isDarkMode && styles.summaryCardDark]}>
+          <Text style={[styles.summaryValue, isDarkMode && styles.titleDark]}>{currentLog.waterMl}ml</Text>
+          <Text style={[styles.summaryLabel, isDarkMode && styles.textSecondaryDark]}>Water</Text>
         </View>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryValue}>
+        <View style={[styles.summaryCard, isDarkMode && styles.summaryCardDark]}>
+          <Text style={[styles.summaryValue, isDarkMode && styles.titleDark]}>
             {todayTakenMedsCount}/{medsMaster.length || 0}
           </Text>
-          <Text style={styles.summaryLabel}>Supplements</Text>
+          <Text style={[styles.summaryLabel, isDarkMode && styles.textSecondaryDark]}>Supplements</Text>
         </View>
       </View>
 
+      {dailyMacroSummary.hasGenerated ? (
+        <View style={[styles.formCard, isDarkMode && styles.formCardDark, { marginTop: 0 }]}> 
+          <Text style={[styles.cardTitle, isDarkMode && styles.titleDark]}>Daily Macro Summary</Text>
+          <Text style={[styles.timelineSub, isDarkMode && styles.textSecondaryDark]}>
+            Calories: {dailyMacroSummary.calories} kilocalories
+          </Text>
+          <Text style={[styles.timelineSub, isDarkMode && styles.textSecondaryDark]}>
+            Protein: {dailyMacroSummary.protein} grams
+          </Text>
+          <Text style={[styles.timelineSub, isDarkMode && styles.textSecondaryDark]}>
+            Carbohydrates: {dailyMacroSummary.carbohydrates} grams
+          </Text>
+          <Text style={[styles.timelineSub, isDarkMode && styles.textSecondaryDark]}>
+            Fat: {dailyMacroSummary.fat} grams
+          </Text>
+        </View>
+      ) : null}
+
       {!totalFoodItems ? (
-        <View style={styles.emptyStateCard}>
+        <View style={[styles.emptyStateCard, isDarkMode && styles.formCardDark]}>
           <Image source={{ uri: emptyStateIllustration }} style={styles.emptyIllustration} />
-          <Text style={styles.emptyTitle}>Nothing logged yet — start tracking your day!</Text>
+          <Text style={[styles.emptyTitle, isDarkMode && styles.titleDark]}>
+            Nothing logged yet — start tracking your day!
+          </Text>
           <Pressable onPress={() => openAddItem("breakfast")} style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}>
             <Text style={styles.primaryButtonLabel}>Add Meal</Text>
           </Pressable>
@@ -527,6 +618,7 @@ export default function Index() {
           title={meal.title}
           color={meal.color}
           meal={currentLog.meals[meal.key]}
+          isDarkMode={isDarkMode}
           hasGeminiKey={hasGeminiKey}
           isGenerating={macroLoadingMeal === meal.key}
           onToggleOutsideFood={toggleOutsideFood}
@@ -556,28 +648,28 @@ export default function Index() {
         </View>
       </View>
 
-      <View style={styles.formCard}>
-        <Text style={styles.cardTitle}>Add medication or supplement</Text>
+      <View style={[styles.formCard, isDarkMode && styles.formCardDark]}>
+        <Text style={[styles.cardTitle, isDarkMode && styles.titleDark]}>Add medication or supplement</Text>
         <TextInput
           value={medName}
           onChangeText={setMedName}
           placeholder="Name (ex: Mesalamine)"
           placeholderTextColor={theme.colors.textMuted}
-          style={styles.input}
+          style={[styles.input, isDarkMode && styles.inputDark]}
         />
         <TextInput
           value={medDose}
           onChangeText={setMedDose}
           placeholder="Dosage (ex: 500mg)"
           placeholderTextColor={theme.colors.textMuted}
-          style={styles.input}
+          style={[styles.input, isDarkMode && styles.inputDark]}
         />
         <TextInput
           value={medTime}
           onChangeText={setMedTime}
           placeholder="Time HH:MM"
           placeholderTextColor={theme.colors.textMuted}
-          style={styles.input}
+          style={[styles.input, isDarkMode && styles.inputDark]}
         />
 
         <Pressable onPress={handleAddMed} style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
@@ -588,7 +680,7 @@ export default function Index() {
       {medsMaster.map((med) => {
         const state = currentLog.medsTaken[med.id] ?? { taken: false, timeTaken: med.preferredTime };
         return (
-          <View key={med.id} style={styles.medRowCard}>
+          <View key={med.id} style={[styles.medRowCard, isDarkMode && styles.medRowCardDark]}>
             <Pressable
               onPress={() => toggleMedTaken(med.id)}
               style={({ pressed }) => [styles.medTick, state.taken && styles.medTickActive, pressed && styles.pressed]}
@@ -623,14 +715,14 @@ export default function Index() {
     <ScrollView contentContainerStyle={[styles.contentWrap, { paddingBottom: insets.bottom + 120 }]}>
       {renderScreenHeader("Water Intake", "Hydration helps your gut healing journey")}
 
-      <View style={[styles.formCard, { backgroundColor: "#F0F8FF" }]}>
+      <View style={[styles.formCard, isDarkMode && styles.formCardDark, { backgroundColor: isDarkMode ? darkPalette.mutedSurface : "#F0F8FF" }]}>
         <WaterBottle
           progress={settings.dailyWaterGoal ? currentLog.waterMl / settings.dailyWaterGoal : 0}
           amount={currentLog.waterMl}
           goal={settings.dailyWaterGoal}
         />
         <View style={styles.waterButtonRow}>
-          {[250, 500, 750].map((value) => (
+          {[250, 500].map((value) => (
             <Pressable
               key={value}
               onPress={() => addWater(value)}
@@ -654,7 +746,7 @@ export default function Index() {
   );
 
   const stoolScreen = (
-    <ScrollView contentContainerStyle={[styles.contentWrap, { paddingBottom: insets.bottom + 120 }]}>
+    <ScrollView contentContainerStyle={[styles.contentWrap, styles.stoolContentWrap, { paddingBottom: insets.bottom + 140 }]}>
       {renderScreenHeader("Stool Log", "Track patterns and correlations")}
 
       <View style={styles.tabToggleWrap}>
@@ -676,21 +768,21 @@ export default function Index() {
       </View>
 
       {stoolTab === "entry" ? (
-        <View style={styles.formCard}>
-          <Text style={styles.cardTitle}>New Entry</Text>
+        <View style={[styles.formCard, isDarkMode && styles.formCardDark]}>
+          <Text style={[styles.cardTitle, isDarkMode && styles.titleDark]}>New Entry</Text>
           <TextInput
             value={stoolDate}
             onChangeText={setStoolDate}
             placeholder="YYYY-MM-DD"
             placeholderTextColor={theme.colors.textMuted}
-            style={styles.input}
+            style={[styles.input, isDarkMode && styles.inputDark]}
           />
           <TextInput
             value={stoolTime}
             onChangeText={setStoolTime}
             placeholder="HH:MM"
             placeholderTextColor={theme.colors.textMuted}
-            style={styles.input}
+            style={[styles.input, isDarkMode && styles.inputDark]}
           />
 
           <Text style={styles.inputLabel}>Consistency</Text>
@@ -709,7 +801,7 @@ export default function Index() {
             placeholderTextColor={theme.colors.textMuted}
             multiline
             maxLength={200}
-            style={[styles.input, styles.notesInput]}
+            style={[styles.input, isDarkMode && styles.inputDark, styles.notesInput]}
           />
 
           <Pressable onPress={saveStoolEntry} style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
@@ -718,8 +810,8 @@ export default function Index() {
           {!!stoolMessage ? <Text style={styles.infoText}>{stoolMessage}</Text> : null}
         </View>
       ) : (
-        <View style={styles.formCard}>
-          <Text style={styles.cardTitle}>Last 7 days summary</Text>
+        <View style={[styles.formCard, isDarkMode && styles.formCardDark]}>
+          <Text style={[styles.cardTitle, isDarkMode && styles.titleDark]}>Last 7 days summary</Text>
           {getPastDateKeys(7).map((dateKey) => {
             const log = allLogs[dateKey] ?? createEmptyDayLog();
             const lastStool = log.stoolEntries[0];
@@ -758,19 +850,23 @@ export default function Index() {
 
   const settingsScreen = (
     <ScrollView contentContainerStyle={[styles.contentWrap, { paddingBottom: insets.bottom + 120 }]}>
-      {renderScreenHeader("Settings", "Crohn's Diary • Know your gut, heal your life")}
+      {renderScreenHeader("Settings", "GutLogs • Know your gut, heal your life")}
 
-      <View style={styles.formCard}>
+      <View style={[styles.formCard, isDarkMode && styles.formCardDark]}>
         <Text style={styles.inputLabel}>Gemini API Key</Text>
         <TextInput
           value={settings.geminiApiKey}
           onChangeText={(value) => setSettings({ ...settings, geminiApiKey: value })}
           placeholder="Paste your Gemini API key"
           placeholderTextColor={theme.colors.textMuted}
-          style={styles.input}
+          style={[styles.input, isDarkMode && styles.inputDark]}
           autoCapitalize="none"
         />
         <Text style={styles.helperText}>Stored only on this device via AsyncStorage.</Text>
+
+        <Pressable onPress={saveApiKeyOnly} style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
+          <Text style={styles.secondaryButtonLabel}>Save API Key</Text>
+        </Pressable>
 
         <Text style={styles.inputLabel}>City</Text>
         <View style={styles.cityRow}>
@@ -801,8 +897,36 @@ export default function Index() {
           keyboardType="numeric"
           placeholder="2500"
           placeholderTextColor={theme.colors.textMuted}
-          style={styles.input}
+          style={[styles.input, isDarkMode && styles.inputDark]}
         />
+
+        <Text style={styles.inputLabel}>Appearance</Text>
+        <View style={styles.cityRow}>
+          {([
+            { key: "system", label: "System" },
+            { key: "light", label: "Light" },
+            { key: "dark", label: "Dark" },
+          ] as const).map((option) => (
+            <Pressable
+              key={option.key}
+              onPress={() => setSettings({ ...settings, themePreference: option.key })}
+              style={({ pressed }) => [
+                styles.cityButton,
+                settings.themePreference === option.key && styles.cityButtonActive,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.cityButtonLabel,
+                  settings.themePreference === option.key && styles.cityButtonLabelActive,
+                ]}
+              >
+                {option.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
 
         <Pressable onPress={saveAllSettings} style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
           <Text style={styles.secondaryButtonLabel}>Save Settings</Text>
@@ -815,8 +939,8 @@ export default function Index() {
         {!!settingsMessage ? <Text style={styles.infoText}>{settingsMessage}</Text> : null}
       </View>
 
-      <View style={styles.formCard}>
-        <Text style={styles.cardTitle}>Extra insights</Text>
+      <View style={[styles.formCard, isDarkMode && styles.formCardDark]}>
+        <Text style={[styles.cardTitle, isDarkMode && styles.titleDark]}>Extra insights</Text>
 
         <Pressable onPress={() => setExtraPage("aiFeedback")} style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}>
           <Text style={styles.primaryButtonLabel}>Open AI Food & Med Review</Text>
@@ -855,9 +979,9 @@ export default function Index() {
       {!!reviewError ? <Text style={styles.errorTextGlobal}>{reviewError}</Text> : null}
 
       {reviewData ? (
-        <View style={styles.formCard}>
+        <View style={[styles.formCard, isDarkMode && styles.formCardDark]}>
           <View style={styles.cautionRow}>
-            <Text style={styles.cardTitle}>Review</Text>
+            <Text style={[styles.cardTitle, isDarkMode && styles.titleDark]}>Review</Text>
             <View
               style={[
                 styles.cautionBadge,
@@ -911,8 +1035,8 @@ export default function Index() {
     <ScrollView contentContainerStyle={[styles.contentWrap, { paddingBottom: insets.bottom + 44 }]}>
       {renderScreenHeader("Suspicious Foods", "Mark foods that trigger stomach upset")}
 
-      <View style={styles.formCard}>
-        <Text style={styles.cardTitle}>All suspicious foods together</Text>
+      <View style={[styles.formCard, isDarkMode && styles.formCardDark]}>
+        <Text style={[styles.cardTitle, isDarkMode && styles.titleDark]}>All suspicious foods together</Text>
         {suspiciousItems.length ? (
           suspiciousItems.map((item) => (
             <View key={`${item.name}_${item.lastSeen}`} style={styles.suspiciousSummaryRow}>
@@ -927,8 +1051,8 @@ export default function Index() {
         )}
       </View>
 
-      <View style={styles.formCard}>
-        <Text style={styles.cardTitle}>Revisit old logs (last 14 days)</Text>
+      <View style={[styles.formCard, isDarkMode && styles.formCardDark]}>
+        <Text style={[styles.cardTitle, isDarkMode && styles.titleDark]}>Revisit old logs (last 14 days)</Text>
         {getPastDateKeys(14).map((dateKey) => {
           const log = allLogs[dateKey];
           if (!log) return null;
@@ -976,86 +1100,93 @@ export default function Index() {
     return settingsScreen;
   };
 
-  if (loading) {
+  if (loading || showBootSpinner) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: currentPalette.background }]}> 
+        <StatusBar style={isDarkMode ? "light" : "dark"} backgroundColor={currentPalette.background} />
         <View style={styles.loaderWrap}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={styles.loaderText}>Loading your diary...</Text>
+          <Text style={[styles.loaderText, isDarkMode && styles.textSecondaryDark]}>Loading GutLogs...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: currentPalette.background }]}>
+      <StatusBar style={isDarkMode ? "light" : "dark"} backgroundColor={currentPalette.background} />
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 6 : 0}
         style={styles.safeArea}
       >
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: currentPalette.background }]}> 
           {extraPage ? (
-            <View style={styles.extraHeader}>
+            <View style={[styles.extraHeader, { backgroundColor: currentPalette.background }]}>
               <Pressable onPress={() => setExtraPage(null)} style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}>
-                <Feather name="arrow-left" size={18} color={theme.colors.textPrimary} />
-                <Text style={styles.backButtonLabel}>Back</Text>
+                <Feather name="arrow-left" size={18} color={currentPalette.textPrimary} />
+                <Text style={[styles.backButtonLabel, isDarkMode && styles.titleDark]}>Back</Text>
               </Pressable>
             </View>
           ) : null}
 
           {getMainScreen()}
 
-          {!extraPage ? <BottomNav activeTab={activeTab} onTabPress={setActiveTab} /> : null}
+          {!extraPage && !keyboardVisible ? (
+            <BottomNav activeTab={activeTab} onTabPress={setActiveTab} isDarkMode={isDarkMode} />
+          ) : null}
         </View>
 
-        <Modal visible={!!itemModalMeal} animationType="slide" transparent onRequestClose={() => setItemModalMeal(null)}>
+        <Modal visible={!!itemModalMeal} animationType="fade" transparent onRequestClose={() => setItemModalMeal(null)}>
           <Pressable style={styles.modalBackdrop} onPress={() => setItemModalMeal(null)}>
-            <Pressable style={styles.modalCard} onPress={() => undefined}>
-              <Text style={styles.modalTitle}>Add Food Item</Text>
-              <Text style={styles.modalSubtitle}>
-                {mealMeta.find((meal) => meal.key === itemModalMeal)?.title}
-              </Text>
+            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.modalKeyboardWrap}>
+              <Pressable style={[styles.modalCard, isDarkMode && styles.modalCardDark]} onPress={() => undefined}>
+                <Text style={[styles.modalTitle, isDarkMode && styles.titleDark]}>Add Food Item</Text>
+                <Text style={[styles.modalSubtitle, isDarkMode && styles.textSecondaryDark]}>
+                  {mealMeta.find((meal) => meal.key === itemModalMeal)?.title}
+                </Text>
 
-              <TextInput
-                value={itemName}
-                onChangeText={setItemName}
-                placeholder={mealMeta.find((meal) => meal.key === itemModalMeal)?.placeholder ?? "Food name"}
-                placeholderTextColor={theme.colors.textMuted}
-                style={styles.input}
-              />
+                <TextInput
+                  value={itemName}
+                  onChangeText={setItemName}
+                  placeholder={mealMeta.find((meal) => meal.key === itemModalMeal)?.placeholder ?? "Food name"}
+                  placeholderTextColor={isDarkMode ? "#95A7BC" : theme.colors.textMuted}
+                  style={[styles.input, isDarkMode && styles.inputDark]}
+                />
 
-              <TextInput
-                value={itemQty}
-                onChangeText={setItemQty}
-                keyboardType="numeric"
-                placeholder="Quantity"
-                placeholderTextColor={theme.colors.textMuted}
-                style={styles.input}
-              />
+                <TextInput
+                  value={itemQty}
+                  onChangeText={setItemQty}
+                  keyboardType="numeric"
+                  placeholder="Quantity"
+                  placeholderTextColor={isDarkMode ? "#95A7BC" : theme.colors.textMuted}
+                  style={[styles.input, isDarkMode && styles.inputDark]}
+                />
 
-              <View style={styles.unitWrap}>
-                {(["g", "ml"] as const).map((unit) => (
-                  <Pressable
-                    key={unit}
-                    onPress={() => setItemUnit(unit)}
-                    style={({ pressed }) => [
-                      styles.unitChip,
-                      itemUnit === unit && styles.unitChipActive,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <Text style={[styles.unitChipLabel, itemUnit === unit && styles.unitChipLabelActive]}>
-                      {unit}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
+                <View style={styles.unitWrap}>
+                  {(["g", "ml"] as const).map((unit) => (
+                    <Pressable
+                      key={unit}
+                      onPress={() => setItemUnit(unit)}
+                      style={({ pressed }) => [
+                        styles.unitChip,
+                        isDarkMode && styles.unitChipDark,
+                        itemUnit === unit && styles.unitChipActive,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <Text style={[styles.unitChipLabel, itemUnit === unit && styles.unitChipLabelActive]}>
+                        {unit}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
 
-              <Pressable onPress={handleAddFoodItem} style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}>
-                <Text style={styles.primaryButtonLabel}>Save Item</Text>
+                <Pressable onPress={handleAddFoodItem} style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}>
+                  <Text style={styles.primaryButtonLabel}>Save Item</Text>
+                </Pressable>
               </Pressable>
-            </Pressable>
+            </KeyboardAvoidingView>
           </Pressable>
         </Modal>
       </KeyboardAvoidingView>
@@ -1076,6 +1207,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.lg,
     gap: theme.spacing.md,
+  },
+  stoolContentWrap: {
+    paddingTop: theme.spacing.xl,
   },
   headerWrap: {
     marginBottom: theme.spacing.md,
@@ -1103,6 +1237,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: theme.spacing.sm,
   },
+  dateSwitcherDark: {
+    backgroundColor: "#18202D",
+    borderColor: "#2A374A",
+  },
   switcherText: {
     fontWeight: "600",
     color: theme.colors.textPrimary,
@@ -1117,6 +1255,9 @@ const styles = StyleSheet.create({
     minWidth: 44,
     minHeight: 44,
   },
+  circleIconButtonDark: {
+    backgroundColor: "#202B3A",
+  },
   summaryStrip: {
     flexDirection: "row",
     gap: theme.spacing.sm,
@@ -1130,6 +1271,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     alignItems: "center",
     ...theme.shadow.sm,
+  },
+  summaryCardDark: {
+    backgroundColor: "#18202D",
   },
   summaryValue: {
     color: theme.colors.textPrimary,
@@ -1255,6 +1399,11 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.lg,
     ...theme.shadow.md,
   },
+  formCardDark: {
+    backgroundColor: "#18202D",
+    borderWidth: 1,
+    borderColor: "#2A374A",
+  },
   cardTitle: {
     color: theme.colors.textPrimary,
     fontSize: 20,
@@ -1279,6 +1428,11 @@ const styles = StyleSheet.create({
     minHeight: 46,
     marginBottom: 8,
   },
+  inputDark: {
+    backgroundColor: "#202A38",
+    borderColor: "#34445A",
+    color: "#EDF4FF",
+  },
   notesInput: {
     minHeight: 88,
     textAlignVertical: "top",
@@ -1293,6 +1447,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 10,
     alignItems: "center",
+  },
+  medRowCardDark: {
+    backgroundColor: "#202A38",
+    borderColor: "#334258",
   },
   medTick: {
     width: 36,
@@ -1455,6 +1613,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: -2,
   },
+  titleDark: {
+    color: "#EDF4FF",
+  },
+  textSecondaryDark: {
+    color: "#C2CEDF",
+  },
   cityRow: {
     flexDirection: "row",
     gap: 10,
@@ -1595,16 +1759,28 @@ const styles = StyleSheet.create({
   modalBackdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.35)",
-    justifyContent: "flex-end",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 12,
+  },
+  modalKeyboardWrap: {
+    width: "100%",
+    alignItems: "center",
   },
   modalCard: {
     backgroundColor: theme.colors.surface,
-    borderTopLeftRadius: theme.radius.xl,
-    borderTopRightRadius: theme.radius.xl,
+    borderRadius: theme.radius.xl,
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.lg,
-    paddingBottom: 30,
-    minHeight: "52%",
+    paddingBottom: 20,
+    minHeight: 300,
+    width: "92%",
+    maxWidth: 440,
+  },
+  modalCardDark: {
+    backgroundColor: "#18202D",
+    borderWidth: 1,
+    borderColor: "#2A374A",
   },
   modalTitle: {
     fontSize: 24,
@@ -1631,6 +1807,10 @@ const styles = StyleSheet.create({
     minHeight: 44,
     alignItems: "center",
     justifyContent: "center",
+  },
+  unitChipDark: {
+    borderColor: "#3B4B62",
+    backgroundColor: "#202A38",
   },
   unitChipActive: {
     backgroundColor: "#F9E8E2",

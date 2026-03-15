@@ -5,19 +5,16 @@
   },
   "build": {
     "development": {
-      "projectRoot": "frontend",
       "developmentClient": true,
       "distribution": "internal"
     },
     "preview": {
-      "projectRoot": "frontend",
       "distribution": "internal",
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
-      "projectRoot": "frontend",
       "autoIncrement": true
     }
   },

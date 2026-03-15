@@ -1,0 +1,316 @@
+{
+  "identity": {
+    "name": "E1",
+    "role": "Anti-AI Creative Designer",
+    "mission": "Create a warm, nurturing, and emotionally intelligent interface for Crohn's management.",
+    "principles": [
+      "Fusion over Imitation: Blend 'Medical Utility' with 'Botanical Journal' aesthetics.",
+      "Emotion First: The app should feel like a warm hug, not a spreadsheet.",
+      "Content is King: Data is personal; present it with dignity and clarity.",
+      "Zoom In: Focus on the micro-details of daily logging to reduce cognitive load.",
+      "Negative Space: Use generous padding to create a sense of calm.",
+      "Contrast: Soft backgrounds with sharp text for readability.",
+      "Balance & Symmetry: prioritize visual balance and symmetry to evoke calmness (User Constraint)."
+    ],
+    "anti_patterns": [
+      "No 'Hospital Blue' or generic 'Tech Purple'.",
+      "No harsh black (#000000) - use Deep Charcoal.",
+      "No cluttered grids - use spacious cards.",
+      "No generic 'Inter' font - prefer rounded, friendly typography."
+    ]
+  },
+  "design_system": {
+    "typography": {
+      "font_family": {
+        "heading": "System (Rounded) or Nunito/Quicksand (if available via expo-font)",
+        "body": "System (Default) or Lato/Open Sans"
+      },
+      "sizes": {
+        "xs": 12,
+        "sm": 14,
+        "base": 16,
+        "lg": 18,
+        "xl": 20,
+        "2xl": 24,
+        "3xl": 30,
+        "4xl": 36,
+        "5xl": 48
+      },
+      "weights": {
+        "light": "300",
+        "regular": "400",
+        "medium": "500",
+        "semibold": "600",
+        "bold": "700"
+      },
+      "line_heights": {
+        "tight": 1.25,
+        "snug": 1.375,
+        "normal": 1.5,
+        "relaxed": 1.625
+      }
+    },
+    "colors": {
+      "palette": {
+        "background": {
+          "primary": "#FDFBF7",
+          "secondary": "#F2EFE9",
+          "tertiary": "#EBE5DE",
+          "surface": "#FFFFFF"
+        },
+        "brand": {
+          "primary": "#E08E79",
+          "primary_light": "#F7E1D7",
+          "secondary": "#AAB7A2",
+          "secondary_light": "#E2E8DE",
+          "accent": "#F4D06F"
+        },
+        "text": {
+          "primary": "#2D3436",
+          "secondary": "#636E72",
+          "tertiary": "#B2BEC3",
+          "inverse": "#FFFFFF",
+          "brand": "#E08E79"
+        },
+        "status": {
+          "success": "#55efc4",
+          "warning": "#ffeaa7",
+          "error": "#ff7675",
+          "info": "#74b9ff"
+        }
+      },
+      "meals": {
+        "breakfast": "#FFEaa7",
+        "lunch": "#AAB7A2",
+        "dinner": "#E08E79",
+        "snacks": "#a29bfe",
+        "misc": "#74b9ff"
+      },
+      "stool_scale": {
+        "brown": "#8D6E63",
+        "yellow": "#FBC02D",
+        "green": "#388E3C",
+        "black": "#212121",
+        "red": "#D32F2F",
+        "clay": "#BCAAA4"
+      },
+      "water": {
+        "fill": "#74b9ff",
+        "background": "#dfe6e9"
+      }
+    },
+    "spacing": {
+      "xs": 4,
+      "sm": 8,
+      "md": 12,
+      "lg": 16,
+      "xl": 24,
+      "2xl": 32,
+      "3xl": 40,
+      "4xl": 48
+    },
+    "radius": {
+      "sm": 8,
+      "md": 12,
+      "lg": 16,
+      "xl": 24,
+      "full": 9999
+    },
+    "shadows": {
+      "sm": {
+        "shadowColor": "#000",
+        "shadowOffset": { "width": 0, "height": 1 },
+        "shadowOpacity": 0.05,
+        "shadowRadius": 2,
+        "elevation": 2
+      },
+      "md": {
+        "shadowColor": "#000",
+        "shadowOffset": { "width": 0, "height": 2 },
+        "shadowOpacity": 0.1,
+        "shadowRadius": 4,
+        "elevation": 4
+      },
+      "lg": {
+        "shadowColor": "#000",
+        "shadowOffset": { "width": 0, "height": 4 },
+        "shadowOpacity": 0.15,
+        "shadowRadius": 8,
+        "elevation": 8
+      }
+    }
+  },
+  "content_strategy": {
+    "tone": "Warm, Encouraging, Non-Judgmental",
+    "examples": {
+      "indian_food": ["Idli", "Pesarattu", "Biryani", "Dal Chawal", "Upma"],
+      "measurements": ["katori", "plate", "serving", "grams"]
+    }
+  },
+  "components": {
+    "Button": {
+      "base": {
+        "borderRadius": 24,
+        "paddingVertical": 16,
+        "paddingHorizontal": 24,
+        "alignItems": "center",
+        "justifyContent": "center",
+        "flexDirection": "row",
+        "gap": 8
+      },
+      "variants": {
+        "primary": {
+          "backgroundColor": "#E08E79",
+          "labelColor": "#FFFFFF"
+        },
+        "secondary": {
+          "backgroundColor": "#E2E8DE",
+          "labelColor": "#4A5D4F"
+        },
+        "ghost": {
+          "backgroundColor": "transparent",
+          "labelColor": "#E08E79"
+        },
+        "outline": {
+          "backgroundColor": "transparent",
+          "borderColor": "#E08E79",
+          "borderWidth": 1,
+          "labelColor": "#E08E79"
+        }
+      }
+    },
+    "Card": {
+      "base": {
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 16,
+        "padding": 16,
+        "shadowColor": "#000",
+        "shadowOffset": { "width": 0, "height": 2 },
+        "shadowOpacity": 0.05,
+        "shadowRadius": 8,
+        "elevation": 3,
+        "marginBottom": 16
+      }
+    },
+    "Input": {
+      "base": {
+        "backgroundColor": "#F9F9F9",
+        "borderRadius": 12,
+        "paddingVertical": 12,
+        "paddingHorizontal": 16,
+        "fontSize": 16,
+        "color": "#2D3436",
+        "borderWidth": 1,
+        "borderColor": "#E5E5E5"
+      },
+      "focus": {
+        "borderColor": "#E08E79",
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "Navigation": {
+      "tabBar": {
+        "backgroundColor": "#FFFFFF",
+        "borderTopWidth": 0,
+        "elevation": 10,
+        "shadowColor": "#000",
+        "shadowOffset": { "width": 0, "height": -2 },
+        "shadowOpacity": 0.05,
+        "shadowRadius": 4,
+        "height": 60,
+        "paddingBottom": 8
+      },
+      "activeTintColor": "#E08E79",
+      "inactiveTintColor": "#B2BEC3"
+    }
+  },
+  "screens": {
+    "Home": {
+      "layout": "Vertical Scroll",
+      "header": "Greeting + Date",
+      "empty_state": "Friendly Illustration + 'Add Meal' CTA",
+      "meal_cards": "Distinct color strip per meal type, summary details",
+      "fab": "Floating Action Button for quick add (optional)"
+    },
+    "Meds": {
+      "layout": "Checklist",
+      "theme": "Soft Lavender/Purple (#E6E6FA)",
+      "progress": "Circular completion ring"
+    },
+    "Water": {
+      "layout": "Central Focus",
+      "animation": "Fill Effect (Wave or simple height)",
+      "controls": "Quick Add (+250ml) buttons"
+    },
+    "StoolLog": {
+      "tabs": ["Entry", "Correlation"],
+      "entry_form": "Segmented Controls or Cards for selection",
+      "correlation": "Timeline view"
+    },
+    "Settings": {
+      "layout": "List",
+      "items": "API Key, City, Water Goal, Reset"
+    }
+  },
+  "micro_interactions": {
+    "checkbox": "Scale bounce on check",
+    "card_press": "Scale down (0.98) on press in",
+    "water_fill": "Smooth height interpolation",
+    "tab_switch": "Icon subtle bounce or color fade",
+    "modal": "Slide up from bottom (presentation: 'modal')"
+  },
+  "assets": {
+    "images": {
+      "empty_state": {
+        "url": "https://images.unsplash.com/photo-1762859718146-895cd99daf90",
+        "description": "Minimalist delicate plant for calming empty state"
+      },
+      "welcome_header": {
+        "url": "https://images.unsplash.com/photo-1766229492286-85b92571766f",
+        "description": "Cozy tea cup for warm welcome vibe"
+      }
+    },
+    "icons": {
+      "library": "@expo/vector-icons",
+      "sets": ["Ionicons", "MaterialCommunityIcons", "Feather"],
+      "mapping": {
+        "home": "home-outline / home",
+        "meds": "pill / pill-outline (MaterialCommunityIcons)",
+        "water": "water-outline / water",
+        "stool": "toilet / toilet-outline (MaterialCommunityIcons)", 
+        "settings": "settings-outline / settings",
+        "add": "add-circle",
+        "check": "checkmark-circle",
+        "close": "close-circle"
+      }
+    }
+  },
+  "tech_stack": {
+    "framework": "React Native (Expo SDK 54)",
+    "styling": "StyleSheet (Use design_system values)",
+    "navigation": "expo-router",
+    "storage": "AsyncStorage",
+    "api": "Fetch (Gemini API)"
+  },
+  "universal_guidelines": [
+    "Use SafeAreaView for all screens to handle notches.",
+    "Use KeyboardAvoidingView (behavior='padding') for all forms.",
+    "Avoid using absolute positioning unless necessary for overlays.",
+    "Ensure touch targets are at least 44x44 points.",
+    "Use 'flex: 1' for main containers to ensure full height.",
+    "Implement 'Pressable' with 'style={({ pressed }) => [...]}' for feedback.",
+    "Do NOT use pure black (#000000) for text; use #2D3436.",
+    "Do NOT use gradients for text (React Native support is limited).",
+    "Keep standard header height (approx 56-60px).",
+    "Prioritize Symmetry and Balance in layouts to maintain a 'Calm' aesthetic (User Constraint)."
+  ],
+  "instructions_to_main_agent": [
+    "Create a 'constants/Theme.ts' file exporting the colors, spacing, and typography.",
+    "Create a 'components/StyledText.tsx' wrapper if needed for custom fonts.",
+    "Use 'expo-router' structure: app/(tabs)/_layout.tsx for the tab bar.",
+    "For shadows, use the 'shadows' object from design_system - React Native iOS shadows require shadowColor, Offset, Opacity, Radius. Android uses elevation.",
+    "For the 'Water' animation, use 'react-native-reanimated' if possible, or simple LayoutAnimation.",
+    "Implement the 'Bento' feel by using 'flexWrap: wrap' and percentage widths (48% for 2-col) in StyleSheet.",
+    "Use Indian food examples (Idli, Biryani) as placeholders in text or dropdowns where appropriate."
+  ]
+}

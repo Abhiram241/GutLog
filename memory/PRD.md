@@ -58,6 +58,35 @@ Build a premium-feel mobile Expo app for Crohn's disease daily tracking with war
 - Additional cleanup: removed `setLayoutAnimationEnabledExperimental` call to reduce New Architecture warning noise.
 - Post-fix regression checks completed: add meal, add meds, water increment, stool save, suspicious toggle, AI no-key error state.
 
+## UI/UX Iteration (2026-03-15) — GutLogs Branding + Usability Polish
+- Pulled latest user repo snapshot from: `https://github.com/Abhiram241/GutLog.git` and aligned requested updates in active workspace.
+- Branding updates:
+  - Removed Crohn naming from visible app title.
+  - Home title updated to **GutLogs**.
+  - App config updated: `name`, `slug`, and `scheme` set to GutLogs values.
+- Icon updates:
+  - Generated new lightning-themed icon assets using ⚡ style and replaced app icon/splash assets.
+- Startup experience:
+  - Added in-app startup spinner state (`Loading GutLogs...`) to replace immediate static loading feel.
+- Keyboard/navigation bug fix:
+  - Fixed stool-page keyboard/nav interaction by tracking keyboard visibility and hiding bottom nav while keyboard is open.
+  - Added extra stool page padding to improve spacing and usability.
+- Status bar visibility:
+  - Added explicit `StatusBar` styling for better contrast (light/dark aware) so system status icons remain readable.
+- Dark mode:
+  - Added manual+system appearance support in Settings (`System`, `Light`, `Dark`).
+  - Applied dark mode styling to major containers/cards/nav/modal inputs.
+- Macro presentation:
+  - Added daily macro summary card near top of Home when generated macros exist.
+  - Updated macro labels to full form only (Calories, Protein, Carbohydrates, Fat).
+- Add-item modal UX:
+  - Moved add-item popup to centered modal layout.
+  - Improved keyboard behavior and ensured save action remains visible while typing.
+- Water page update:
+  - Removed `+750 ml` quick-add option.
+- Settings UX:
+  - Added dedicated **Save API Key** button directly below Gemini key input.
+
 ## Validation Completed
 - ESLint passed (`yarn lint`)
 - Live preview visual checks completed across key screens using screenshot automation

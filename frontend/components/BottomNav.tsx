@@ -8,6 +8,7 @@ import { AppTab } from "@/types";
 interface BottomNavProps {
   activeTab: AppTab;
   onTabPress: (tab: AppTab) => void;
+  isDarkMode?: boolean;
 }
 
 const tabs: {
@@ -36,12 +37,16 @@ const tabs: {
   },
 ];
 
-export function BottomNav({ activeTab, onTabPress }: BottomNavProps) {
+export function BottomNav({ activeTab, onTabPress, isDarkMode = false }: BottomNavProps) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDarkMode && styles.containerDark]}>
       {tabs.map((tab) => {
         const focused = activeTab === tab.key;
-        const tintColor = focused ? theme.colors.primary : theme.colors.textMuted;
+        const tintColor = focused
+          ? theme.colors.primary
+          : isDarkMode
+            ? "#9CA8B8"
+            : theme.colors.textMuted;
 
         return (
           <Pressable
@@ -68,7 +73,9 @@ export function BottomNav({ activeTab, onTabPress }: BottomNavProps) {
                 color={tintColor}
               />
             )}
-            <Text style={[styles.label, focused && styles.labelFocused]}>{tab.label}</Text>
+            <Text style={[styles.label, isDarkMode && styles.labelDark, focused && styles.labelFocused]}>
+              {tab.label}
+            </Text>
           </Pressable>
         );
       })}
@@ -88,6 +95,10 @@ const styles = StyleSheet.create({
     paddingTop: theme.spacing.sm,
     paddingBottom: theme.spacing.lg,
     ...theme.shadow.md,
+  },
+  containerDark: {
+    backgroundColor: "#121824",
+    borderTopColor: "#273241",
   },
   tab: {
     minHeight: 44,
@@ -109,5 +120,8 @@ const styles = StyleSheet.create({
   },
   labelFocused: {
     color: theme.colors.primary,
+  },
+  labelDark: {
+    color: "#9BA9B8",
   },
 });

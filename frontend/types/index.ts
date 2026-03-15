@@ -59,6 +59,7 @@ export interface SettingsData {
   geminiApiKey: string;
   city: "Hyderabad" | "Bengaluru";
   dailyWaterGoal: number;
+  themePreference: "system" | "light" | "dark";
 }
 
 export interface AIReviewResult {

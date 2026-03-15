@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
 import { DayLog, MedItem, MealType, SettingsData } from "@/types";
 
@@ -7,6 +8,55 @@ const MEDS_KEY = "crohns_diary_meds_master_v1";
 const LOG_PREFIX = "log_";
 
 const mealTypes: MealType[] = ["breakfast", "lunch", "dinner", "snacks", "misc"];
+const memoryStore: Record<string, string> = {};
+
+const canUseWebStorage = () => Platform.OS === "web" && typeof globalThis?.localStorage !== "undefined";
+
+const fallbackGetItem = (key: string) => {
+  if (canUseWebStorage()) {
+    return globalThis.localStorage.getItem(key);
+  }
+  return memoryStore[key] ?? null;
+};
+
+const fallbackSetItem = (key: string, value: string) => {
+  if (canUseWebStorage()) {
+    globalThis.localStorage.setItem(key, value);
+    return;
+  }
+  memoryStore[key] = value;
+};
+
+const fallbackGetAllKeys = () => {
+  if (canUseWebStorage()) {
+    return Object.keys(globalThis.localStorage);
+  }
+  return Object.keys(memoryStore);
+};
+
+const safeGetItem = async (key: string) => {
+  try {
+    return await AsyncStorage.getItem(key);
+  } catch {
+    return fallbackGetItem(key);
+  }
+};
+
+const safeSetItem = async (key: string, value: string) => {
+  try {
+    await AsyncStorage.setItem(key, value);
+  } catch {
+    fallbackSetItem(key, value);
+  }
+};
+
+const safeGetAllKeys = async () => {
+  try {
+    return await AsyncStorage.getAllKeys();
+  } catch {
+    return fallbackGetAllKeys();
+  }
+};
 
 export const createEmptyDayLog = (): DayLog => ({
   meals: {
@@ -51,7 +101,7 @@ const normalizeLog = (raw: Partial<DayLog> | null): DayLog => {
 };
 
 export const getSettings = async () => {
-  const raw = await AsyncStorage.getItem(SETTINGS_KEY);
+  const raw = await safeGetItem(SETTINGS_KEY);
   if (!raw) return defaultSettings;
   const parsed = JSON.parse(raw) as Partial<SettingsData>;
   return {
@@ -65,34 +115,36 @@ export const getSettings = async () => {
 };
 
 export const saveSettings = async (settings: SettingsData) => {
-  await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  await safeSetItem(SETTINGS_KEY, JSON.stringify(settings));
 };
 
 export const getMedsMaster = async (): Promise<MedItem[]> => {
-  const raw = await AsyncStorage.getItem(MEDS_KEY);
+  const raw = await safeGetItem(MEDS_KEY);
   if (!raw) return [];
   return JSON.parse(raw) as MedItem[];
 };
 
 export const saveMedsMaster = async (meds: MedItem[]) => {
-  await AsyncStorage.setItem(MEDS_KEY, JSON.stringify(meds));
+  await safeSetItem(MEDS_KEY, JSON.stringify(meds));
 };
 
 export const getDayLog = async (dateKey: string) => {
-  const raw = await AsyncStorage.getItem(`${LOG_PREFIX}${dateKey}`);
+  const raw = await safeGetItem(`${LOG_PREFIX}${dateKey}`);
   if (!raw) return createEmptyDayLog();
   return normalizeLog(JSON.parse(raw) as Partial<DayLog>);
 };
 
 export const saveDayLog = async (dateKey: string, log: DayLog) => {
-  await AsyncStorage.setItem(`${LOG_PREFIX}${dateKey}`, JSON.stringify(log));
+  await safeSetItem(`${LOG_PREFIX}${dateKey}`, JSON.stringify(log));
 };
 
 export const getAllLogs = async (): Promise<Record<string, DayLog>> => {
-  const keys = await AsyncStorage.getAllKeys();
+  const keys = await safeGetAllKeys();
   const logKeys = keys.filter((key) => key.startsWith(LOG_PREFIX));
   if (!logKeys.length) return {};
-  const pairs = await AsyncStorage.multiGet(logKeys);
+  const pairs = await Promise.all(
+    logKeys.map(async (key) => [key, await safeGetItem(key)] as [string, string | null])
+  );
 
   return pairs.reduce((acc, [key, value]) => {
     if (!value) return acc;

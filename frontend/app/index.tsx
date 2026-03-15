@@ -14,7 +14,6 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  UIManager,
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -95,10 +94,6 @@ const chipColor = {
   inactiveBorder: "#ECE4DB",
   inactiveText: theme.colors.textSecondary,
 };
-
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 export default function Index() {
   const insets = useSafeAreaInsets();

@@ -47,6 +47,17 @@ Build a premium-feel mobile Expo app for Crohn's disease daily tracking with war
   - `@react-native-async-storage/async-storage`
   - `react-native-svg`
 
+## Bug Fix Iteration (2026-03-15)
+- Fixed crash: `AsyncStorage.default.multiGet is not a function` in `utils/storage.ts`.
+- Root fix:
+  - Replaced `multiGet` usage with safe per-key reads via `Promise.all` + `getItem`.
+  - Added robust safe storage wrappers (`safeGetItem`, `safeSetItem`, `safeGetAllKeys`) with fallback storage handling to prevent startup crashes.
+  - Updated package versions to Expo SDK-compatible versions:
+    - `@react-native-async-storage/async-storage@2.2.0`
+    - `react-native-svg@15.12.1`
+- Additional cleanup: removed `setLayoutAnimationEnabledExperimental` call to reduce New Architecture warning noise.
+- Post-fix regression checks completed: add meal, add meds, water increment, stool save, suspicious toggle, AI no-key error state.
+
 ## Validation Completed
 - ESLint passed (`yarn lint`)
 - Live preview visual checks completed across key screens using screenshot automation

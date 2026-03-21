@@ -5,15 +5,22 @@
  * Shows available routines if no workout is active, or the live workout session.
  */
 
-import React from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React from "react";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ScreenHeader } from '../../components/ScreenHeader';
-import { RoutineCard } from '../../components/gym/RoutineCard';
-import { theme } from '../../constants/theme';
-import { Routine } from '../../types/gym';
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { RoutineCard } from "../../components/gym/RoutineCard";
+import { theme } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
+import { Routine } from "../../types/gym";
 
 interface GymWorkoutScreenProps {
   routines: Routine[];
@@ -37,14 +44,19 @@ export function GymWorkoutScreen({
   onCreateRoutine,
 }: GymWorkoutScreenProps) {
   const insets = useSafeAreaInsets();
+  const { palette } = useAppTheme();
 
   return (
-    <View style={styles.container}>
-      <ScreenHeader
-        title="Workout"
-        subtitle={hasActiveWorkout ? 'Resume your workout' : 'Choose a routine'}
-        isDarkMode={isDarkMode}
-      />
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
+      <View style={styles.screenPad}>
+        <ScreenHeader
+          title="Workout"
+          subtitle={
+            hasActiveWorkout ? "Resume your workout" : "Choose a routine"
+          }
+          isDarkMode={isDarkMode}
+        />
+      </View>
 
       {/* Active workout banner */}
       {hasActiveWorkout && (
@@ -70,10 +82,10 @@ export function GymWorkoutScreen({
           <View style={[styles.emptyIcon, isDarkMode && styles.emptyIconDark]}>
             <Feather name="list" size={48} color="#4ECDC4" />
           </View>
-          <Text style={[styles.emptyTitle, isDarkMode && styles.textPrimary]}>
+          <Text style={[styles.emptyTitle, { color: palette.textPrimary }]}>
             No Routines Yet
           </Text>
-          <Text style={[styles.emptyText, isDarkMode && styles.textSecondary]}>
+          <Text style={[styles.emptyText, { color: palette.textSecondary }]}>
             Create your first workout routine to get started
           </Text>
           <TouchableOpacity
@@ -105,7 +117,7 @@ export function GymWorkoutScreen({
           )}
           ListFooterComponent={
             <TouchableOpacity
-              style={[styles.addRoutineButton, isDarkMode && styles.addRoutineButtonDark]}
+              style={[styles.addRoutineButton]}
               onPress={onCreateRoutine}
             >
               <Feather name="plus" size={20} color="#4ECDC4" />
@@ -122,29 +134,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  screenPad: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.lg,
+  },
   activeBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#4ECDC4',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#4ECDC4",
     marginHorizontal: theme.spacing.lg,
     marginVertical: theme.spacing.md,
     padding: theme.spacing.lg,
     borderRadius: theme.radius.lg,
   },
   activeBannerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: theme.spacing.md,
   },
   activeBannerText: {},
   activeBannerTitle: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   activeBannerSubtitle: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: "rgba(255, 255, 255, 0.8)",
     fontSize: 13,
   },
   listContent: {
@@ -153,32 +169,32 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: theme.spacing.xl,
   },
   emptyIcon: {
     width: 100,
     height: 100,
     borderRadius: theme.radius.full,
-    backgroundColor: 'rgba(78, 205, 196, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(78, 205, 196, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: theme.spacing.xl,
   },
   emptyIconDark: {
-    backgroundColor: 'rgba(78, 205, 196, 0.2)',
+    backgroundColor: "rgba(78, 205, 196, 0.2)",
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: "700",
     color: theme.colors.textPrimary,
     marginBottom: theme.spacing.sm,
   },
   emptyText: {
     fontSize: 14,
     color: theme.colors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: theme.spacing.xl,
   },
   textPrimary: {
@@ -188,37 +204,37 @@ const styles = StyleSheet.create({
     color: theme.dark.textSecondary,
   },
   createButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: theme.spacing.sm,
-    backgroundColor: '#4ECDC4',
+    backgroundColor: "#4ECDC4",
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: theme.radius.full,
   },
   createButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   addRoutineButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: theme.spacing.sm,
     paddingVertical: theme.spacing.lg,
     marginTop: theme.spacing.md,
     borderRadius: theme.radius.lg,
     borderWidth: 2,
-    borderColor: '#4ECDC4',
-    borderStyle: 'dashed',
+    borderColor: "#4ECDC4",
+    borderStyle: "dashed",
   },
   addRoutineButtonDark: {
-    borderColor: '#4ECDC4',
+    borderColor: "#4ECDC4",
   },
   addRoutineText: {
-    color: '#4ECDC4',
+    color: "#4ECDC4",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

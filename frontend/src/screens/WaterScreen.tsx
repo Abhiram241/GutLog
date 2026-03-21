@@ -8,11 +8,13 @@
 import React, { useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 
 import { FormCard } from "../components/FormCard";
 import { ScreenHeader } from "../components/ScreenHeader";
 import { WaterBottle } from "../components/WaterBottle";
 import { theme } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 import { DayLog, SettingsData } from "../types";
 import { shiftDateKey } from "../utils/date";
 
@@ -34,6 +36,7 @@ export function WaterScreen({
   onAddWater,
 }: WaterScreenProps) {
   const insets = useSafeAreaInsets();
+  const { palette } = useAppTheme();
 
   // Calculate hydration streak
   const waterStreak = useMemo(() => {
@@ -61,14 +64,13 @@ export function WaterScreen({
       <ScreenHeader
         title="Water Intake"
         subtitle="Hydration helps your gut healing journey"
+        icon="water-outline"
         isDarkMode={isDarkMode}
       />
 
       <FormCard
         isDarkMode={isDarkMode}
-        style={{
-          backgroundColor: isDarkMode ? theme.dark.surfaceMuted : "#F0F8FF",
-        }}
+        style={{ backgroundColor: palette.surfaceMuted }}
       >
         <WaterBottle
           progress={progress}
@@ -85,6 +87,7 @@ export function WaterScreen({
               pressed && styles.pressed,
             ]}
           >
+            <Ionicons name="remove-circle-outline" size={20} color="#FFFFFF" />
             <Text style={styles.removeLabel}>−250 ml</Text>
           </Pressable>
           <Pressable
@@ -94,16 +97,12 @@ export function WaterScreen({
               pressed && styles.pressed,
             ]}
           >
+            <Ionicons name="add-circle-outline" size={20} color="#FFFFFF" />
             <Text style={styles.addLabel}>+250 ml</Text>
           </Pressable>
         </View>
 
-        <Text
-          style={[
-            styles.streakText,
-            isDarkMode && { color: theme.dark.textSecondary },
-          ]}
-        >
+        <Text style={[styles.streakText, { color: palette.textSecondary }]}>
           {waterStreak > 0
             ? `You have hit your water goal ${waterStreak} day${waterStreak > 1 ? "s" : ""} in a row`
             : "Start a hydration streak today."}
@@ -133,6 +132,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 12,
+    flexDirection: "row",
+    gap: 8,
   },
   addLabel: { color: "#FFFFFF", fontWeight: "700", fontSize: 16 },
   removeButton: {
@@ -143,6 +144,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 12,
+    flexDirection: "row",
+    gap: 8,
   },
   removeLabel: { color: "#FFFFFF", fontWeight: "700", fontSize: 16 },
   streakText: {

@@ -5,7 +5,7 @@
  * Manages all gym-related state: exercises, routines, workouts, PRs, settings.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 
 import {
   Exercise,
@@ -15,7 +15,7 @@ import {
   PersonalRecord,
   BodyMetricEntry,
   GymSettings,
-} from '../types/gym';
+} from "../types/gym";
 import {
   getExercises,
   saveExercises,
@@ -36,8 +36,9 @@ import {
   getActiveWorkout,
   saveActiveWorkout,
   defaultGymSettings,
-} from '../services/gymStorageService';
-import { getTodayDateKey } from '../utils/date';
+  seedPresetExercisesIfNeeded,
+} from "../services/gymStorageService";
+import { getTodayDateKey } from "../utils/date";
 
 export function useGymData() {
   const todayKey = getTodayDateKey();
@@ -49,16 +50,25 @@ export function useGymData() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [folders, setFolders] = useState<RoutineFolder[]>([]);
-  const [workoutHistory, setWorkoutHistory] = useState<Record<string, WorkoutSession[]>>({});
-  const [personalRecords, setPersonalRecords] = useState<Record<string, PersonalRecord>>({});
+  const [workoutHistory, setWorkoutHistory] = useState<
+    Record<string, WorkoutSession[]>
+  >({});
+  const [personalRecords, setPersonalRecords] = useState<
+    Record<string, PersonalRecord>
+  >({});
   const [bodyMetrics, setBodyMetrics] = useState<BodyMetricEntry[]>([]);
-  const [gymSettings, setGymSettingsState] = useState<GymSettings>(defaultGymSettings);
-  const [activeWorkout, setActiveWorkoutState] = useState<WorkoutSession | null>(null);
+  const [gymSettings, setGymSettingsState] =
+    useState<GymSettings>(defaultGymSettings);
+  const [activeWorkout, setActiveWorkoutState] =
+    useState<WorkoutSession | null>(null);
 
   // ─── Bootstrap ──────────────────────────────────────────────────────────────
   useEffect(() => {
     const init = async () => {
       try {
+        // Seed preset exercises on first launch
+        await seedPresetExercisesIfNeeded();
+
         const [
           storedExercises,
           storedRoutines,
@@ -171,7 +181,7 @@ export function useGymData() {
     // Unassign routines from deleted folder
     setRoutines((prev) => {
       const next = prev.map((r) =>
-        r.folderId === folderId ? { ...r, folderId: undefined } : r
+        r.folderId === folderId ? { ...r, folderId: undefined } : r,
       );
       void saveRoutines(next);
       return next;
@@ -197,7 +207,7 @@ export function useGymData() {
       const next = {
         ...prev,
         [workout.dateKey]: dateWorkouts.map((w) =>
-          w.id === workout.id ? workout : w
+          w.id === workout.id ? workout : w,
         ),
       };
       void saveWorkoutsByDate(workout.dateKey, next[workout.dateKey]);
@@ -206,10 +216,13 @@ export function useGymData() {
   }, []);
 
   // ─── Active Workout Handlers ────────────────────────────────────────────────
-  const setActiveWorkout = useCallback(async (workout: WorkoutSession | null) => {
-    setActiveWorkoutState(workout);
-    await saveActiveWorkout(workout);
-  }, []);
+  const setActiveWorkout = useCallback(
+    async (workout: WorkoutSession | null) => {
+      setActiveWorkoutState(workout);
+      await saveActiveWorkout(workout);
+    },
+    [],
+  );
 
   // ─── Personal Records Handlers ──────────────────────────────────────────────
   const checkAndUpdatePR = useCallback(
@@ -218,13 +231,16 @@ export function useGymData() {
       exerciseName: string,
       weight: number,
       value: number,
-      dateKey: string
-    ): Promise<{ isNewPR: boolean; prType: 'weight' | 'reps' | 'volume' | null }> => {
+      dateKey: string,
+    ): Promise<{
+      isNewPR: boolean;
+      prType: "weight" | "reps" | "volume" | null;
+    }> => {
       const volume = weight * value;
       const current = personalRecords[exerciseId];
 
       let isNewPR = false;
-      let prType: 'weight' | 'reps' | 'volume' | null = null;
+      let prType: "weight" | "reps" | "volume" | null = null;
 
       const updated: PersonalRecord = current
         ? { ...current }
@@ -232,32 +248,32 @@ export function useGymData() {
             exerciseId,
             exerciseName,
             maxWeight: 0,
-            maxWeightDate: '',
+            maxWeightDate: "",
             maxReps: 0,
-            maxRepsDate: '',
+            maxRepsDate: "",
             maxVolume: 0,
-            maxVolumeDate: '',
+            maxVolumeDate: "",
           };
 
       if (weight > updated.maxWeight) {
         updated.maxWeight = weight;
         updated.maxWeightDate = dateKey;
         isNewPR = true;
-        prType = 'weight';
+        prType = "weight";
       }
 
       if (value > updated.maxReps) {
         updated.maxReps = value;
         updated.maxRepsDate = dateKey;
         isNewPR = true;
-        prType = prType ? 'volume' : 'reps';
+        prType = prType ? "volume" : "reps";
       }
 
       if (volume > updated.maxVolume) {
         updated.maxVolume = volume;
         updated.maxVolumeDate = dateKey;
         isNewPR = true;
-        if (!prType) prType = 'volume';
+        if (!prType) prType = "volume";
       }
 
       if (isNewPR) {
@@ -270,14 +286,14 @@ export function useGymData() {
 
       return { isNewPR, prType };
     },
-    [personalRecords]
+    [personalRecords],
   );
 
   // ─── Body Metrics Handlers ──────────────────────────────────────────────────
   const addBodyMetric = useCallback(async (metric: BodyMetricEntry) => {
     setBodyMetrics((prev) => {
       const next = [...prev, metric].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
       );
       void saveBodyMetrics(next);
       return next;

@@ -7,6 +7,7 @@
  * Logic lives in useMeals hook. This component is UI-only.
  */
 
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -17,6 +18,7 @@ import { MealCard } from "../components/MealCard";
 import { ScreenHeader } from "../components/ScreenHeader";
 import { mealMeta } from "../constants/mealMeta";
 import { theme } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 import { DayLog, MealType, SettingsData } from "../types";
 import { friendlyDate, shiftDateKey } from "../utils/date";
 import { createEmptyDayLog } from "../utils/logHelpers";
@@ -51,6 +53,7 @@ export function HomeScreen({
   onGenerateMacros,
 }: HomeScreenProps) {
   const insets = useSafeAreaInsets();
+  const { palette } = useAppTheme();
   const currentLog = allLogs[currentDateKey] ?? createEmptyDayLog();
   const hasGeminiKey = settings.geminiApiKey.trim().length > 0;
 
@@ -92,11 +95,23 @@ export function HomeScreen({
 
   // ─── Render ───────────────────────────────────────────────────────────────────
   const summaryItems = [
-    { label: "Food items", value: String(totalFoodItems) },
-    { label: "Water", value: `${currentLog.waterMl}ml` },
+    {
+      label: "Food items",
+      value: String(totalFoodItems),
+      icon: "restaurant-outline" as const,
+      iconLib: "ion" as const,
+    },
+    {
+      label: "Water",
+      value: `${currentLog.waterMl}ml`,
+      icon: "water-outline" as const,
+      iconLib: "ion" as const,
+    },
     {
       label: "Supplements",
       value: `${todayTakenMedsCount}/${medsMaster.length || 0}`,
+      icon: "medkit-outline" as const,
+      iconLib: "ion" as const,
     },
   ];
 
@@ -109,8 +124,9 @@ export function HomeScreen({
       ListHeaderComponent={
         <>
           <ScreenHeader
-            title="GutLogs"
+            title="NextCore"
             subtitle={friendlyDate(currentDateKey)}
+            icon="leaf-outline"
             isDarkMode={isDarkMode}
           />
 
@@ -130,21 +146,24 @@ export function HomeScreen({
                 key={item.label}
                 style={[
                   styles.summaryCard,
-                  isDarkMode && styles.summaryCardDark,
+                  { backgroundColor: palette.surface },
                 ]}
               >
+                <Ionicons
+                  name={item.icon}
+                  size={20}
+                  color={theme.colors.primary}
+                  style={styles.summaryIcon}
+                />
                 <Text
-                  style={[
-                    styles.summaryValue,
-                    isDarkMode && styles.textPrimaryDark,
-                  ]}
+                  style={[styles.summaryValue, { color: palette.textPrimary }]}
                 >
                   {item.value}
                 </Text>
                 <Text
                   style={[
                     styles.summaryLabel,
-                    isDarkMode && styles.textSecondaryDark,
+                    { color: palette.textSecondary },
                   ]}
                 >
                   {item.label}
@@ -156,43 +175,72 @@ export function HomeScreen({
           {/* Daily macro summary */}
           {dailyMacroSummary.hasGenerated ? (
             <FormCard isDarkMode={isDarkMode} style={{ marginTop: 0 }}>
-              <Text
-                style={[styles.cardTitle, isDarkMode && styles.textPrimaryDark]}
-              >
-                Daily Macro Summary
-              </Text>
-              <Text
-                style={[
-                  styles.macroLine,
-                  isDarkMode && styles.textSecondaryDark,
-                ]}
-              >
-                Calories: {dailyMacroSummary.calories} kilocalories
-              </Text>
-              <Text
-                style={[
-                  styles.macroLine,
-                  isDarkMode && styles.textSecondaryDark,
-                ]}
-              >
-                Protein: {dailyMacroSummary.protein} grams
-              </Text>
-              <Text
-                style={[
-                  styles.macroLine,
-                  isDarkMode && styles.textSecondaryDark,
-                ]}
-              >
-                Carbohydrates: {dailyMacroSummary.carbohydrates} grams
-              </Text>
-              <Text
-                style={[
-                  styles.macroLine,
-                  isDarkMode && styles.textSecondaryDark,
-                ]}
-              >
-                Fat: {dailyMacroSummary.fat} grams
-              </Text>
+              <View style={styles.cardTitleRow}>
+                <Ionicons
+                  name="stats-chart-outline"
+                  size={18}
+                  color={theme.colors.primary}
+                />
+                <Text
+                  style={[styles.cardTitle, { color: palette.textPrimary }]}
+                >
+                  Daily Macro Summary
+                </Text>
+              </View>
+              <View style={styles.macroGrid}>
+                {[
+                  {
+                    label: "Calories",
+                    value: `${dailyMacroSummary.calories} kcal`,
+                    icon: "flame-outline" as const,
+                  },
+                  {
+                    label: "Protein",
+                    value: `${dailyMacroSummary.protein}g`,
+                    icon: "barbell-outline" as const,
+                  },
+                  {
+                    label: "Carbs",
+                    value: `${dailyMacroSummary.carbohydrates}g`,
+                    icon: "leaf-outline" as const,
+                  },
+                  {
+                    label: "Fat",
+                    value: `${dailyMacroSummary.fat}g`,
+                    icon: "water-outline" as const,
+                  },
+                ].map((m) => (
+                  <View
+                    key={m.label}
+                    style={[
+                      styles.macroItem,
+                      { backgroundColor: palette.surfaceMuted },
+                    ]}
+                  >
+                    <Ionicons
+                      name={m.icon}
+                      size={16}
+                      color={theme.colors.primary}
+                    />
+                    <Text
+                      style={[
+                        styles.macroValue,
+                        { color: palette.textPrimary },
+                      ]}
+                    >
+                      {m.value}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.macroLabel,
+                        { color: palette.textSecondary },
+                      ]}
+                    >
+                      {m.label}
+                    </Text>
+                  </View>
+                ))}
+              </View>
             </FormCard>
           ) : null}
         </>
@@ -230,39 +278,54 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.md,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
     alignItems: "center",
+    gap: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 2,
     elevation: 2,
   },
-  summaryCardDark: { backgroundColor: theme.dark.surface },
+  summaryIcon: { marginBottom: 2 },
   summaryValue: {
-    color: theme.colors.textPrimary,
     fontWeight: "700",
-    fontSize: 16,
+    fontSize: 15,
   },
   summaryLabel: {
-    marginTop: 2,
-    color: theme.colors.textSecondary,
-    fontSize: 12,
+    fontSize: 11,
+    textAlign: "center",
   },
-  cardTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: 20,
-    fontWeight: "700",
+  cardTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     marginBottom: 12,
   },
-  macroLine: {
-    color: theme.colors.textSecondary,
-    fontSize: 12,
-    lineHeight: 18,
+  cardTitle: {
+    fontSize: 17,
+    fontWeight: "700",
   },
-  textPrimaryDark: { color: theme.dark.textPrimary },
-  textSecondaryDark: { color: theme.dark.textSecondary },
+  macroGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  macroItem: {
+    flex: 1,
+    minWidth: "44%",
+    alignItems: "center",
+    borderRadius: theme.radius.sm,
+    paddingVertical: 10,
+    gap: 3,
+  },
+  macroValue: {
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  macroLabel: {
+    fontSize: 11,
+  },
 });

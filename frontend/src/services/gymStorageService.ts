@@ -5,8 +5,8 @@
  * Handles all AsyncStorage operations for gym-related data.
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
 import {
   Exercise,
@@ -17,20 +17,23 @@ import {
   BodyMetricEntry,
   GymSettings,
   GymBackupPayload,
-} from '../types/gym';
+} from "../types/gym";
+import { PRESET_EXERCISES } from "../constants/presetExercises";
+import { generateId } from "../utils/gymHelpers";
 
 // ─── Storage Keys ─────────────────────────────────────────────────────────────
 
 const KEYS = {
-  GYM_MODE: 'gym_tracker_mode_enabled',
-  EXERCISES: 'gym_exercises_v1',
-  ROUTINES: 'gym_routines_v1',
-  FOLDERS: 'gym_folders_v1',
-  WORKOUT_PREFIX: 'gym_workout_',
-  PERSONAL_RECORDS: 'gym_personal_records_v1',
-  BODY_METRICS: 'gym_body_metrics_v1',
-  GYM_SETTINGS: 'gym_settings_v1',
-  ACTIVE_WORKOUT: 'gym_active_workout_v1',
+  GYM_MODE: "gym_tracker_mode_enabled",
+  EXERCISES: "gym_exercises_v1",
+  ROUTINES: "gym_routines_v1",
+  FOLDERS: "gym_folders_v1",
+  WORKOUT_PREFIX: "gym_workout_",
+  PERSONAL_RECORDS: "gym_personal_records_v1",
+  BODY_METRICS: "gym_body_metrics_v1",
+  GYM_SETTINGS: "gym_settings_v1",
+  ACTIVE_WORKOUT: "gym_active_workout_v1",
+  PRESETS_SEEDED: "gym_presets_seeded_v1",
 };
 
 // ─── Default Values ───────────────────────────────────────────────────────────
@@ -40,8 +43,8 @@ export const defaultGymSettings: GymSettings = {
   autoStartRest: true,
   keepScreenAwake: true,
   showPreviousWorkout: true,
-  weightUnit: 'kg',
-  gymTheme: 'warm',
+  weightUnit: "kg",
+  gymTheme: "warm",
 };
 
 // ─── Fallback Storage ─────────────────────────────────────────────────────────
@@ -49,7 +52,7 @@ export const defaultGymSettings: GymSettings = {
 const memoryStore: Record<string, string> = {};
 
 const canUseWebStorage = () =>
-  Platform.OS === 'web' && typeof globalThis?.localStorage !== 'undefined';
+  Platform.OS === "web" && typeof globalThis?.localStorage !== "undefined";
 
 const fallbackGetItem = (key: string) => {
   if (canUseWebStorage()) return globalThis.localStorage.getItem(key);
@@ -95,7 +98,7 @@ const safeGetAllKeys = async (): Promise<readonly string[]> => {
 
 export const getGymModeEnabled = async (): Promise<boolean> => {
   const raw = await safeGetItem(KEYS.GYM_MODE);
-  return raw === 'true';
+  return raw === "true";
 };
 
 export const setGymModeEnabled = async (enabled: boolean): Promise<void> => {
@@ -180,7 +183,9 @@ export const saveFolders = async (folders: RoutineFolder[]): Promise<void> => {
 
 // ─── Workout History ──────────────────────────────────────────────────────────
 
-export const getWorkoutsByDate = async (dateKey: string): Promise<WorkoutSession[]> => {
+export const getWorkoutsByDate = async (
+  dateKey: string,
+): Promise<WorkoutSession[]> => {
   const raw = await safeGetItem(`${KEYS.WORKOUT_PREFIX}${dateKey}`);
   if (!raw) return [];
   return JSON.parse(raw) as WorkoutSession[];
@@ -188,18 +193,25 @@ export const getWorkoutsByDate = async (dateKey: string): Promise<WorkoutSession
 
 export const saveWorkoutsByDate = async (
   dateKey: string,
-  workouts: WorkoutSession[]
+  workouts: WorkoutSession[],
 ): Promise<void> => {
-  await safeSetItem(`${KEYS.WORKOUT_PREFIX}${dateKey}`, JSON.stringify(workouts));
+  await safeSetItem(
+    `${KEYS.WORKOUT_PREFIX}${dateKey}`,
+    JSON.stringify(workouts),
+  );
 };
 
-export const addWorkoutSession = async (workout: WorkoutSession): Promise<void> => {
+export const addWorkoutSession = async (
+  workout: WorkoutSession,
+): Promise<void> => {
   const workouts = await getWorkoutsByDate(workout.dateKey);
   workouts.push(workout);
   await saveWorkoutsByDate(workout.dateKey, workouts);
 };
 
-export const updateWorkoutSession = async (workout: WorkoutSession): Promise<void> => {
+export const updateWorkoutSession = async (
+  workout: WorkoutSession,
+): Promise<void> => {
   const workouts = await getWorkoutsByDate(workout.dateKey);
   const index = workouts.findIndex((w) => w.id === workout.id);
   if (index !== -1) {
@@ -208,35 +220,39 @@ export const updateWorkoutSession = async (workout: WorkoutSession): Promise<voi
   }
 };
 
-export const getAllWorkoutHistory = async (): Promise<Record<string, WorkoutSession[]>> => {
+export const getAllWorkoutHistory = async (): Promise<
+  Record<string, WorkoutSession[]>
+> => {
   const keys = await safeGetAllKeys();
   const workoutKeys = keys.filter((key) => key.startsWith(KEYS.WORKOUT_PREFIX));
-  
+
   const result: Record<string, WorkoutSession[]> = {};
-  
+
   await Promise.all(
     workoutKeys.map(async (key) => {
-      const dateKey = key.replace(KEYS.WORKOUT_PREFIX, '');
+      const dateKey = key.replace(KEYS.WORKOUT_PREFIX, "");
       const raw = await safeGetItem(key);
       if (raw) {
         result[dateKey] = JSON.parse(raw) as WorkoutSession[];
       }
-    })
+    }),
   );
-  
+
   return result;
 };
 
 // ─── Personal Records ─────────────────────────────────────────────────────────
 
-export const getPersonalRecords = async (): Promise<Record<string, PersonalRecord>> => {
+export const getPersonalRecords = async (): Promise<
+  Record<string, PersonalRecord>
+> => {
   const raw = await safeGetItem(KEYS.PERSONAL_RECORDS);
   if (!raw) return {};
   return JSON.parse(raw) as Record<string, PersonalRecord>;
 };
 
 export const savePersonalRecords = async (
-  records: Record<string, PersonalRecord>
+  records: Record<string, PersonalRecord>,
 ): Promise<void> => {
   await safeSetItem(KEYS.PERSONAL_RECORDS, JSON.stringify(records));
 };
@@ -246,51 +262,54 @@ export const updatePersonalRecord = async (
   exerciseName: string,
   weight: number,
   reps: number,
-  dateKey: string
-): Promise<{ isNewPR: boolean; prType: 'weight' | 'reps' | 'volume' | null }> => {
+  dateKey: string,
+): Promise<{
+  isNewPR: boolean;
+  prType: "weight" | "reps" | "volume" | null;
+}> => {
   const records = await getPersonalRecords();
   const volume = weight * reps;
-  
+
   const current = records[exerciseId] || {
     exerciseId,
     exerciseName,
     maxWeight: 0,
-    maxWeightDate: '',
+    maxWeightDate: "",
     maxReps: 0,
-    maxRepsDate: '',
+    maxRepsDate: "",
     maxVolume: 0,
-    maxVolumeDate: '',
+    maxVolumeDate: "",
   };
-  
+
   let isNewPR = false;
-  let prType: 'weight' | 'reps' | 'volume' | null = null;
-  
+  let prType: "weight" | "reps" | "volume" | null = null;
+
   if (weight > current.maxWeight) {
     current.maxWeight = weight;
     current.maxWeightDate = dateKey;
     isNewPR = true;
-    prType = 'weight';
+    prType = "weight";
   }
-  
+
   if (reps > current.maxReps) {
     current.maxReps = reps;
     current.maxRepsDate = dateKey;
     isNewPR = true;
-    prType = prType ? 'volume' : 'reps'; // If both, it's likely volume PR
+    prType = prType ? "volume" : "reps"; // If both, it's likely volume PR
   }
-  
+
   if (volume > current.maxVolume) {
     current.maxVolume = volume;
     current.maxVolumeDate = dateKey;
     isNewPR = true;
-    if (!prType) prType = 'volume';
+    if (!prType) prType = "volume";
   }
-  
+
   if (isNewPR) {
     records[exerciseId] = current;
     await savePersonalRecords(records);
   }
-  
+
   return { isNewPR, prType };
 };
 
@@ -302,7 +321,9 @@ export const getBodyMetrics = async (): Promise<BodyMetricEntry[]> => {
   return JSON.parse(raw) as BodyMetricEntry[];
 };
 
-export const saveBodyMetrics = async (metrics: BodyMetricEntry[]): Promise<void> => {
+export const saveBodyMetrics = async (
+  metrics: BodyMetricEntry[],
+): Promise<void> => {
   await safeSetItem(KEYS.BODY_METRICS, JSON.stringify(metrics));
 };
 
@@ -310,7 +331,9 @@ export const addBodyMetric = async (metric: BodyMetricEntry): Promise<void> => {
   const metrics = await getBodyMetrics();
   metrics.push(metric);
   // Sort by date descending
-  metrics.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  metrics.sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
   await saveBodyMetrics(metrics);
 };
 
@@ -335,7 +358,9 @@ export const getActiveWorkout = async (): Promise<WorkoutSession | null> => {
   return JSON.parse(raw) as WorkoutSession;
 };
 
-export const saveActiveWorkout = async (workout: WorkoutSession | null): Promise<void> => {
+export const saveActiveWorkout = async (
+  workout: WorkoutSession | null,
+): Promise<void> => {
   if (workout) {
     await safeSetItem(KEYS.ACTIVE_WORKOUT, JSON.stringify(workout));
   } else {
@@ -346,16 +371,23 @@ export const saveActiveWorkout = async (workout: WorkoutSession | null): Promise
 // ─── Full Backup Export ───────────────────────────────────────────────────────
 
 export const buildGymBackupPayload = async (): Promise<GymBackupPayload> => {
-  const [exercises, routines, folders, workoutHistory, personalRecords, bodyMetrics, gymSettings] =
-    await Promise.all([
-      getExercises(),
-      getRoutines(),
-      getFolders(),
-      getAllWorkoutHistory(),
-      getPersonalRecords(),
-      getBodyMetrics(),
-      getGymSettings(),
-    ]);
+  const [
+    exercises,
+    routines,
+    folders,
+    workoutHistory,
+    personalRecords,
+    bodyMetrics,
+    gymSettings,
+  ] = await Promise.all([
+    getExercises(),
+    getRoutines(),
+    getFolders(),
+    getAllWorkoutHistory(),
+    getPersonalRecords(),
+    getBodyMetrics(),
+    getGymSettings(),
+  ]);
 
   return {
     version: 1,
@@ -372,9 +404,11 @@ export const buildGymBackupPayload = async (): Promise<GymBackupPayload> => {
 
 // ─── Full Backup Import ───────────────────────────────────────────────────────
 
-export const restoreGymBackup = async (payload: GymBackupPayload): Promise<void> => {
+export const restoreGymBackup = async (
+  payload: GymBackupPayload,
+): Promise<void> => {
   if (payload.version !== 1) {
-    throw new Error('Unsupported backup version');
+    throw new Error("Unsupported backup version");
   }
 
   await Promise.all([
@@ -390,8 +424,32 @@ export const restoreGymBackup = async (payload: GymBackupPayload): Promise<void>
   if (payload.workoutHistory) {
     await Promise.all(
       Object.entries(payload.workoutHistory).map(([dateKey, workouts]) =>
-        saveWorkoutsByDate(dateKey, workouts)
-      )
+        saveWorkoutsByDate(dateKey, workouts),
+      ),
     );
   }
+};
+
+// ─── Preset Exercise Seeding ──────────────────────────────────────────────────
+
+export const seedPresetExercisesIfNeeded = async (): Promise<void> => {
+  const seeded = await safeGetItem(KEYS.PRESETS_SEEDED);
+  if (seeded === "true") return;
+
+  const existing = await getExercises();
+  if (existing.length > 0) {
+    // User already has exercises — mark as seeded without overwriting
+    await safeSetItem(KEYS.PRESETS_SEEDED, "true");
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const presets: Exercise[] = PRESET_EXERCISES.map((p) => ({
+    ...p,
+    id: generateId(),
+    createdAt: now,
+  }));
+
+  await saveExercises(presets);
+  await safeSetItem(KEYS.PRESETS_SEEDED, "true");
 };

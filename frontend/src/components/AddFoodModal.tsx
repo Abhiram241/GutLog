@@ -18,6 +18,7 @@ import {
 } from "react-native";
 
 import { theme } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 import { mealMeta } from "../constants/mealMeta";
 import { MealType, UnitType } from "../types";
 
@@ -48,6 +49,7 @@ export function AddFoodModal({
   onUnitChange,
   onSubmit,
 }: AddFoodModalProps) {
+  const { palette } = useAppTheme();
   const meal = mealMeta.find((m) => m.key === mealType);
 
   return (
@@ -60,7 +62,13 @@ export function AddFoodModal({
       <Pressable style={styles.backdrop} onPress={onClose}>
         <KeyboardAvoidingView behavior="padding" style={styles.keyboardWrap}>
           <Pressable
-            style={[styles.card, isDarkMode && styles.cardDark]}
+            style={[
+              styles.card,
+              {
+                backgroundColor: palette.surface,
+                borderColor: palette.border,
+              },
+            ]}
             onPress={() => undefined}
           >
             {/* Meal label pill */}
@@ -77,27 +85,35 @@ export function AddFoodModal({
               </View>
             ) : null}
 
-            <Text style={[styles.title, isDarkMode && styles.textPrimaryDark]}>
+            <Text style={[styles.title, { color: palette.textPrimary }]}>
               Add Food Item
             </Text>
 
             {/* Grouped input surface */}
             <View
-              style={[styles.inputGroup, isDarkMode && styles.inputGroupDark]}
+              style={[
+                styles.inputGroup,
+                {
+                  backgroundColor: palette.inputBg,
+                  borderColor: palette.inputBorder,
+                  borderWidth: 1,
+                },
+              ]}
             >
               <TextInput
                 value={itemName}
                 onChangeText={onNameChange}
                 placeholder={meal?.placeholder ?? "Food name"}
-                placeholderTextColor={
-                  isDarkMode ? theme.dark.textMuted : theme.colors.textMuted
-                }
-                style={[styles.input, isDarkMode && styles.inputDark]}
+                placeholderTextColor={palette.textMuted}
+                style={[styles.input, { color: palette.textPrimary }]}
                 returnKeyType="next"
                 autoFocus
               />
               <View
-                style={[styles.divider, isDarkMode && styles.dividerDark]}
+                style={[
+                  styles.divider,
+                  { backgroundColor: palette.borderSubtle },
+                ]}
               />
               <View style={styles.qtyRow}>
                 <TextInput
@@ -105,10 +121,8 @@ export function AddFoodModal({
                   onChangeText={onQtyChange}
                   keyboardType="numeric"
                   placeholder="Qty"
-                  placeholderTextColor={
-                    isDarkMode ? theme.dark.textMuted : theme.colors.textMuted
-                  }
-                  style={[styles.qtyInput, isDarkMode && styles.inputDark]}
+                  placeholderTextColor={palette.textMuted}
+                  style={[styles.qtyInput, { color: palette.textPrimary }]}
                   returnKeyType="done"
                   onSubmitEditing={onSubmit}
                 />
@@ -119,18 +133,18 @@ export function AddFoodModal({
                       onPress={() => onUnitChange(unit)}
                       style={[
                         styles.unitBtn,
-                        isDarkMode && styles.unitBtnDark,
-                        itemUnit === unit &&
-                          (isDarkMode
-                            ? styles.unitBtnActiveDark
-                            : styles.unitBtnActive),
+                        itemUnit === unit && {
+                          backgroundColor: palette.surfaceElevated,
+                          borderWidth: 1,
+                          borderColor: palette.border,
+                        },
                       ]}
                     >
                       <Text
                         style={[
                           styles.unitLabel,
-                          isDarkMode && { color: theme.dark.textSecondary },
-                          itemUnit === unit && styles.unitLabelActive,
+                          { color: palette.textSecondary },
+                          itemUnit === unit && { color: palette.textPrimary },
                         ]}
                       >
                         {unit}
@@ -166,21 +180,16 @@ const styles = StyleSheet.create({
   },
   keyboardWrap: { width: "100%", alignItems: "center" },
   card: {
-    backgroundColor: theme.colors.surface,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 32,
     width: "100%",
     maxWidth: 600,
-  },
-  cardDark: {
-    backgroundColor: theme.dark.surface,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: theme.dark.border,
   },
   mealPill: {
     alignSelf: "flex-start",
@@ -198,31 +207,21 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "700",
-    color: theme.colors.textPrimary,
     marginBottom: 16,
     letterSpacing: -0.3,
   },
   inputGroup: {
-    backgroundColor: "#F5F2EE",
     borderRadius: 16,
     overflow: "hidden",
     marginBottom: 16,
-  },
-  inputGroupDark: {
-    backgroundColor: theme.dark.surfaceMuted,
-    borderWidth: 1,
-    borderColor: theme.dark.border,
   },
   input: {
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: theme.colors.textPrimary,
     backgroundColor: "transparent",
   },
-  inputDark: { color: theme.dark.textPrimary },
-  divider: { height: 1, backgroundColor: "#EAE5DF", marginHorizontal: 16 },
-  dividerDark: { backgroundColor: theme.dark.border },
+  divider: { height: 1, marginHorizontal: 16 },
   qtyRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -233,7 +232,6 @@ const styles = StyleSheet.create({
   qtyInput: {
     flex: 1,
     fontSize: 16,
-    color: theme.colors.textPrimary,
     paddingVertical: 8,
     backgroundColor: "transparent",
   },
@@ -251,26 +249,10 @@ const styles = StyleSheet.create({
     minWidth: 44,
     alignItems: "center",
   },
-  unitBtnDark: { backgroundColor: "transparent" },
-  unitBtnActive: {
-    backgroundColor: theme.colors.surface,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  unitBtnActiveDark: {
-    backgroundColor: theme.dark.surfaceElevated,
-    borderWidth: 1,
-    borderColor: theme.dark.border,
-  },
   unitLabel: {
     fontSize: 14,
     fontWeight: "600",
-    color: theme.colors.textSecondary,
   },
-  unitLabelActive: { color: theme.colors.textPrimary },
   submitBtn: {
     backgroundColor: theme.colors.primary,
     borderRadius: theme.radius.full,
@@ -279,6 +261,5 @@ const styles = StyleSheet.create({
     minHeight: 52,
   },
   submitLabel: { color: "#FFFFFF", fontWeight: "700", fontSize: 16 },
-  textPrimaryDark: { color: theme.dark.textPrimary },
   pressed: { opacity: 0.8, transform: [{ scale: 0.98 }] },
 });

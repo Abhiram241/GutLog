@@ -5,13 +5,14 @@
  * Provides navigation between workout, routines, history, progress, and settings.
  */
 
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { theme } from '../../constants/theme';
-import { GymTab } from '../../types/gym';
+import { theme } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
+import { GymTab } from "../../types/gym";
 
 interface GymBottomNavProps {
   activeTab: GymTab;
@@ -19,23 +20,35 @@ interface GymBottomNavProps {
   isDarkMode: boolean;
 }
 
-const tabs: Array<{ key: GymTab; label: string; icon: keyof typeof Feather.glyphMap }> = [
-  { key: 'workout', label: 'Workout', icon: 'play-circle' },
-  { key: 'routines', label: 'Routines', icon: 'list' },
-  { key: 'history', label: 'History', icon: 'calendar' },
-  { key: 'progress', label: 'Progress', icon: 'trending-up' },
-  { key: 'settings', label: 'Settings', icon: 'settings' },
+const tabs: Array<{
+  key: GymTab;
+  label: string;
+  icon: keyof typeof Feather.glyphMap;
+}> = [
+  { key: "workout", label: "Workout", icon: "play-circle" },
+  { key: "routines", label: "Routines", icon: "list" },
+  { key: "history", label: "History", icon: "calendar" },
+  { key: "progress", label: "Progress", icon: "trending-up" },
+  { key: "settings", label: "Settings", icon: "settings" },
 ];
 
-export function GymBottomNav({ activeTab, onTabPress, isDarkMode }: GymBottomNavProps) {
+export function GymBottomNav({
+  activeTab,
+  onTabPress,
+  isDarkMode,
+}: GymBottomNavProps) {
   const insets = useSafeAreaInsets();
+  const { palette } = useAppTheme();
 
   return (
     <View
       style={[
         styles.container,
-        isDarkMode && styles.containerDark,
-        { paddingBottom: Math.max(insets.bottom, 8) },
+        {
+          backgroundColor: palette.surface,
+          borderTopColor: palette.border,
+          paddingBottom: Math.max(insets.bottom, 8),
+        },
       ]}
     >
       {tabs.map((tab) => {
@@ -51,20 +64,13 @@ export function GymBottomNav({ activeTab, onTabPress, isDarkMode }: GymBottomNav
               <Feather
                 name={tab.icon}
                 size={22}
-                color={
-                  isActive
-                    ? '#4ECDC4'
-                    : isDarkMode
-                    ? theme.dark.textMuted
-                    : theme.colors.textMuted
-                }
+                color={isActive ? "#4ECDC4" : palette.textMuted}
               />
             </View>
             <Text
               style={[
                 styles.label,
-                isActive && styles.labelActive,
-                isDarkMode && !isActive && styles.labelDark,
+                { color: isActive ? "#4ECDC4" : palette.textMuted },
               ]}
             >
               {tab.label}
@@ -78,21 +84,15 @@ export function GymBottomNav({ activeTab, onTabPress, isDarkMode }: GymBottomNav
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    backgroundColor: theme.colors.surface,
+    flexDirection: "row",
     borderTopWidth: 1,
-    borderTopColor: theme.colors.surfaceMuted,
     paddingTop: 8,
     ...theme.shadow.sm,
   },
-  containerDark: {
-    backgroundColor: theme.dark.surface,
-    borderTopColor: theme.dark.border,
-  },
   tab: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     minHeight: 48,
   },
   iconWrap: {
@@ -100,18 +100,11 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.full,
   },
   iconWrapActive: {
-    backgroundColor: 'rgba(78, 205, 196, 0.1)',
+    backgroundColor: "rgba(78, 205, 196, 0.1)",
   },
   label: {
     fontSize: 10,
-    fontWeight: '600',
-    color: theme.colors.textMuted,
+    fontWeight: "600",
     marginTop: 2,
-  },
-  labelActive: {
-    color: '#4ECDC4',
-  },
-  labelDark: {
-    color: theme.dark.textMuted,
   },
 });

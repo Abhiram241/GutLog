@@ -2,19 +2,20 @@
  * DateSwitcher.tsx
  *
  * A row with prev/next arrows and a tappable date label that opens the calendar.
- * Used on Home, Stool, and AI Review screens.
+ * Uses ThemeContext for colors.
  */
 
 import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { useAppTheme } from "../context/ThemeContext";
 import { theme } from "../constants/theme";
 
 interface DateSwitcherProps {
   dateKey: string;
   todayKey: string;
-  isDarkMode?: boolean;
+  isDarkMode?: boolean; // kept for backward compat, ignored
   onPrev: () => void;
   onNext: () => void;
   onOpenCalendar: () => void;
@@ -23,40 +24,44 @@ interface DateSwitcherProps {
 export function DateSwitcher({
   dateKey,
   todayKey,
-  isDarkMode = false,
   onPrev,
   onNext,
   onOpenCalendar,
 }: DateSwitcherProps) {
-  const textColor = isDarkMode
-    ? theme.dark.textPrimary
-    : theme.colors.textPrimary;
-  const iconColor = isDarkMode
-    ? theme.dark.textSecondary
-    : theme.colors.textSecondary;
+  const { palette } = useAppTheme();
 
   return (
-    <View style={[styles.container, isDarkMode && styles.containerDark]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: palette.surface,
+          borderColor: palette.border,
+        },
+      ]}
+    >
       <Pressable
         onPress={onPrev}
         style={({ pressed }) => [
           styles.iconButton,
-          isDarkMode && styles.iconButtonDark,
+          { backgroundColor: palette.surfaceMuted },
           pressed && styles.pressed,
         ]}
       >
-        <Feather name="chevron-left" size={18} color={textColor} />
+        <Feather name="chevron-left" size={18} color={palette.textPrimary} />
       </Pressable>
 
       <Pressable
         onPress={onOpenCalendar}
         style={({ pressed }) => [styles.dateButton, pressed && styles.pressed]}
       >
-        <Text style={[styles.dateText, { color: textColor }]}>{dateKey}</Text>
+        <Text style={[styles.dateText, { color: palette.textPrimary }]}>
+          {dateKey}
+        </Text>
         <Feather
           name="calendar"
           size={13}
-          color={iconColor}
+          color={palette.textSecondary}
           style={styles.calendarIcon}
         />
       </Pressable>
@@ -66,20 +71,14 @@ export function DateSwitcher({
         disabled={dateKey === todayKey}
         style={({ pressed }) => [
           styles.iconButton,
-          isDarkMode && styles.iconButtonDark,
+          { backgroundColor: palette.surfaceMuted },
           pressed && styles.pressed,
         ]}
       >
         <Feather
           name="chevron-right"
           size={18}
-          color={
-            dateKey === todayKey
-              ? isDarkMode
-                ? theme.dark.textMuted
-                : theme.colors.textMuted
-              : textColor
-          }
+          color={dateKey === todayKey ? palette.textMuted : palette.textPrimary}
         />
       </Pressable>
     </View>
@@ -88,10 +87,8 @@ export function DateSwitcher({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.full,
     borderWidth: 1,
-    borderColor: "#EEE7DF",
     paddingVertical: 8,
     paddingHorizontal: 8,
     flexDirection: "row",
@@ -99,22 +96,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: theme.spacing.sm,
   },
-  containerDark: {
-    backgroundColor: "#18202D",
-    borderColor: "#2A374A",
-  },
   iconButton: {
     width: 34,
     height: 34,
     borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#F9F5F0",
     minWidth: 44,
     minHeight: 44,
-  },
-  iconButtonDark: {
-    backgroundColor: theme.dark.surfaceMuted,
   },
   dateButton: {
     flexDirection: "row",

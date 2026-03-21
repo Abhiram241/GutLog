@@ -5,11 +5,11 @@
  * Shows current screen title and allows switching back to normal mode.
  */
 
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
 
-import { theme } from '../../constants/theme';
+import { theme } from "../../constants/theme";
 
 interface GymModeHeaderProps {
   title: string;
@@ -27,7 +27,9 @@ export function GymModeHeader({
   return (
     <View style={[styles.container, isDarkMode && styles.containerDark]}>
       <View style={styles.titleSection}>
-        <Text style={[styles.title, isDarkMode && styles.titleDark]}>{title}</Text>
+        <Text style={[styles.title, isDarkMode && styles.titleDark]}>
+          {title}
+        </Text>
         {subtitle && (
           <Text style={[styles.subtitle, isDarkMode && styles.subtitleDark]}>
             {subtitle}
@@ -48,9 +50,9 @@ export function GymModeHeader({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.md,
     backgroundColor: theme.colors.surface,
@@ -66,7 +68,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '800',
+    fontWeight: "800",
     color: theme.colors.textPrimary,
   },
   titleDark: {
@@ -81,23 +83,23 @@ const styles = StyleSheet.create({
     color: theme.dark.textSecondary,
   },
   modeToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: theme.radius.full,
-    backgroundColor: '#F7E1D7',
+    backgroundColor: "#F7E1D7",
     borderWidth: 1,
-    borderColor: '#E08E79',
+    borderColor: "#E08E79",
   },
   modeToggleDark: {
-    backgroundColor: 'rgba(224, 142, 121, 0.2)',
+    backgroundColor: "rgba(224, 142, 121, 0.2)",
   },
   modeText: {
     fontSize: 11,
-    fontWeight: '800',
-    color: '#E08E79',
+    fontWeight: "800",
+    color: "#E08E79",
     letterSpacing: 0.5,
   },
 });

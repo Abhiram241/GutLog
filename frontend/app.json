@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "GutLogs",
+    "name": "NextCore",
     "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,7 +15,8 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#000000"
+        "monochromeImage": "./assets/images/adaptive-icon-monochrome.png",
+        "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.abhiram24x.gutlogs"

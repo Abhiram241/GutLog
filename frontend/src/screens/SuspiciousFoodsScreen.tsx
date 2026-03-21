@@ -14,6 +14,7 @@ import { FormCard } from "../components/FormCard";
 import { ScreenHeader } from "../components/ScreenHeader";
 import { mealMeta } from "../constants/mealMeta";
 import { theme } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 import { DayLog, MealType } from "../types";
 
 interface SuspiciousFoodsScreenProps {
@@ -45,6 +46,7 @@ export function SuspiciousFoodsScreen({
   onToggleSuspicious,
 }: SuspiciousFoodsScreenProps) {
   const insets = useSafeAreaInsets();
+  const { palette } = useAppTheme();
 
   // ─── Aggregate suspicious items across all logs ────────────────────────────
   const suspiciousItems = useMemo<SuspiciousSummaryItem[]>(() => {
@@ -102,14 +104,13 @@ export function SuspiciousFoodsScreen({
           <ScreenHeader
             title="Suspicious Foods"
             subtitle="Mark foods that trigger stomach upset"
+            icon="warning-outline"
             isDarkMode={isDarkMode}
           />
 
           {/* Summary of all suspicious foods */}
           <FormCard isDarkMode={isDarkMode}>
-            <Text
-              style={[styles.cardTitle, isDarkMode && styles.textPrimaryDark]}
-            >
+            <Text style={[styles.cardTitle, { color: palette.textPrimary }]}>
               All suspicious foods
             </Text>
             {suspiciousItems.length ? (
@@ -118,21 +119,18 @@ export function SuspiciousFoodsScreen({
                   key={`${item.name}_${item.lastSeen}`}
                   style={[
                     styles.summaryRow,
-                    isDarkMode && { borderBottomColor: theme.dark.border },
+                    { borderBottomColor: palette.border },
                   ]}
                 >
                   <Text
-                    style={[
-                      styles.summaryName,
-                      isDarkMode && styles.textPrimaryDark,
-                    ]}
+                    style={[styles.summaryName, { color: palette.textPrimary }]}
                   >
                     {item.name}
                   </Text>
                   <Text
                     style={[
                       styles.summaryMeta,
-                      isDarkMode && styles.textSecondaryDark,
+                      { color: palette.textSecondary },
                     ]}
                   >
                     {item.count} mark(s) • last {item.lastSeen}
@@ -141,10 +139,7 @@ export function SuspiciousFoodsScreen({
               ))
             ) : (
               <Text
-                style={[
-                  styles.emptyText,
-                  isDarkMode && styles.textSecondaryDark,
-                ]}
+                style={[styles.emptyText, { color: palette.textSecondary }]}
               >
                 No suspicious foods marked yet.
               </Text>
@@ -155,19 +150,11 @@ export function SuspiciousFoodsScreen({
       data={revisitByDate}
       keyExtractor={({ dateKey }) => dateKey}
       renderItem={({ item: { dateKey, items } }) => (
-        <View
-          style={[
-            styles.revisitCard,
-            isDarkMode && { borderColor: theme.dark.border },
-          ]}
-        >
-          <Text
-            style={[styles.revisitDate, isDarkMode && styles.textPrimaryDark]}
-          >
+        <View style={[styles.revisitCard, { borderColor: palette.border }]}>
+          <Text style={[styles.revisitDate, { color: palette.textPrimary }]}>
             {dateKey}
           </Text>
           {items.map((item) => {
-            // Find which meal this item belongs to
             const mealType = mealMeta.find((m) =>
               allLogs[dateKey]?.meals[m.key].items.some(
                 (i) => i.id === item.id,
@@ -182,23 +169,20 @@ export function SuspiciousFoodsScreen({
                 }
                 style={({ pressed }) => [
                   styles.revisitRow,
-                  isDarkMode && { borderTopColor: theme.dark.border },
+                  { borderTopColor: palette.borderSubtle },
                   pressed && styles.pressed,
                 ]}
               >
                 <View>
                   <Text
-                    style={[
-                      styles.revisitFood,
-                      isDarkMode && styles.textPrimaryDark,
-                    ]}
+                    style={[styles.revisitFood, { color: palette.textPrimary }]}
                   >
                     {item.name}
                   </Text>
                   <Text
                     style={[
                       styles.revisitMeal,
-                      isDarkMode && styles.textSecondaryDark,
+                      { color: palette.textSecondary },
                     ]}
                   >
                     {item.meal}
@@ -210,9 +194,7 @@ export function SuspiciousFoodsScreen({
                   }
                   size={22}
                   color={
-                    item.suspicious
-                      ? theme.colors.danger
-                      : theme.colors.textMuted
+                    item.suspicious ? theme.colors.danger : palette.textMuted
                   }
                 />
               </Pressable>
@@ -231,51 +213,42 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
   },
   cardTitle: {
-    color: theme.colors.textPrimary,
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 12,
   },
   summaryRow: {
     borderBottomWidth: 1,
-    borderBottomColor: "#F3ECE3",
     paddingVertical: 10,
   },
-  summaryName: { color: theme.colors.textPrimary, fontWeight: "700" },
+  summaryName: { fontWeight: "700" },
   summaryMeta: {
-    color: theme.colors.textSecondary,
     marginTop: 2,
     fontSize: 12,
   },
-  emptyText: { color: theme.colors.textSecondary, fontSize: 13 },
+  emptyText: { fontSize: 13 },
   revisitCard: {
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#EFE7DE",
     borderRadius: theme.radius.md,
     padding: 10,
   },
   revisitDate: {
-    color: theme.colors.textPrimary,
     fontWeight: "700",
     marginBottom: 8,
   },
   revisitRow: {
     borderTopWidth: 1,
-    borderTopColor: "#F3ECE3",
     paddingVertical: 8,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  revisitFood: { color: theme.colors.textPrimary, fontWeight: "600" },
+  revisitFood: { fontWeight: "600" },
   revisitMeal: {
-    color: theme.colors.textSecondary,
     fontSize: 12,
     textTransform: "capitalize",
     marginTop: 2,
   },
-  textPrimaryDark: { color: theme.dark.textPrimary },
-  textSecondaryDark: { color: theme.dark.textSecondary },
   pressed: { opacity: 0.8, transform: [{ scale: 0.98 }] },
 });

@@ -16,11 +16,13 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons, Feather } from "@expo/vector-icons";
 
 import { FormCard } from "../components/FormCard";
 import { OptionChips } from "../components/OptionChips";
 import { ScreenHeader } from "../components/ScreenHeader";
 import { theme } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 import { SettingsData } from "../types";
 
 interface SettingsScreenProps {
@@ -55,6 +57,7 @@ export function SettingsScreen({
   onOpenSuspiciousFoods,
 }: SettingsScreenProps) {
   const insets = useSafeAreaInsets();
+  const { palette } = useAppTheme();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const isBackupError =
@@ -71,21 +74,18 @@ export function SettingsScreen({
       >
         <ScreenHeader
           title="Settings"
-          subtitle="GutLogs • Know your gut, heal your life"
+          subtitle="NextCore • Know your gut, heal your life"
+          icon="settings-outline"
           isDarkMode={isDarkMode}
         />
 
         {/* AI & Preferences */}
         <FormCard isDarkMode={isDarkMode}>
-          <Text
-            style={[styles.cardTitle, isDarkMode && styles.textPrimaryDark]}
-          >
+          <Text style={[styles.cardTitle, { color: palette.textPrimary }]}>
             AI & Preferences
           </Text>
 
-          <Text
-            style={[styles.inputLabel, isDarkMode && styles.textPrimaryDark]}
-          >
+          <Text style={[styles.inputLabel, { color: palette.textPrimary }]}>
             Gemini API Key
           </Text>
           <TextInput
@@ -94,33 +94,42 @@ export function SettingsScreen({
               onSettingsChange({ ...settings, geminiApiKey: value })
             }
             placeholder="Paste your Gemini API key"
-            placeholderTextColor={theme.colors.textMuted}
-            style={[styles.input, isDarkMode && styles.inputDark]}
+            placeholderTextColor={palette.textMuted}
+            style={[
+              styles.input,
+              {
+                backgroundColor: palette.inputBg,
+                borderColor: palette.inputBorder,
+                color: palette.textPrimary,
+              },
+            ]}
             autoCapitalize="none"
           />
-          <Text
-            style={[styles.helperText, isDarkMode && styles.textSecondaryDark]}
-          >
+          <Text style={[styles.helperText, { color: palette.textSecondary }]}>
             Stored only on this device via AsyncStorage.
           </Text>
           <Pressable
             onPress={onSaveApiKey}
             style={({ pressed }) => [
               styles.button,
-              isDarkMode && styles.buttonDark,
+              {
+                backgroundColor: palette.surfaceMuted,
+                borderColor: palette.border,
+              },
               pressed && styles.pressed,
             ]}
           >
-            <Text
-              style={[styles.buttonLabel, isDarkMode && styles.buttonLabelDark]}
-            >
+            <Ionicons
+              name="key-outline"
+              size={16}
+              color={palette.textPrimary}
+            />
+            <Text style={[styles.buttonLabel, { color: palette.textPrimary }]}>
               Save API Key
             </Text>
           </Pressable>
 
-          <Text
-            style={[styles.inputLabel, isDarkMode && styles.textPrimaryDark]}
-          >
+          <Text style={[styles.inputLabel, { color: palette.textPrimary }]}>
             City
           </Text>
           <OptionChips
@@ -130,9 +139,7 @@ export function SettingsScreen({
             isDarkMode={isDarkMode}
           />
 
-          <Text
-            style={[styles.inputLabel, isDarkMode && styles.textPrimaryDark]}
-          >
+          <Text style={[styles.inputLabel, { color: palette.textPrimary }]}>
             Daily water goal (ml)
           </Text>
           <TextInput
@@ -143,13 +150,18 @@ export function SettingsScreen({
             }}
             keyboardType="numeric"
             placeholder="2500"
-            placeholderTextColor={theme.colors.textMuted}
-            style={[styles.input, isDarkMode && styles.inputDark]}
+            placeholderTextColor={palette.textMuted}
+            style={[
+              styles.input,
+              {
+                backgroundColor: palette.inputBg,
+                borderColor: palette.inputBorder,
+                color: palette.textPrimary,
+              },
+            ]}
           />
 
-          <Text
-            style={[styles.inputLabel, isDarkMode && styles.textPrimaryDark]}
-          >
+          <Text style={[styles.inputLabel, { color: palette.textPrimary }]}>
             Appearance
           </Text>
           <OptionChips
@@ -165,19 +177,25 @@ export function SettingsScreen({
             onPress={onSaveSettings}
             style={({ pressed }) => [
               styles.button,
-              isDarkMode && styles.buttonDark,
+              {
+                backgroundColor: palette.surfaceMuted,
+                borderColor: palette.border,
+              },
               pressed && styles.pressed,
             ]}
           >
-            <Text
-              style={[styles.buttonLabel, isDarkMode && styles.buttonLabelDark]}
-            >
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={16}
+              color={palette.textPrimary}
+            />
+            <Text style={[styles.buttonLabel, { color: palette.textPrimary }]}>
               Save Settings
             </Text>
           </Pressable>
 
           {!!settingsMessage && (
-            <Text style={[styles.infoText, isDarkMode && { color: "#6FCF97" }]}>
+            <Text style={[styles.infoText, { color: "#6FCF97" }]}>
               {settingsMessage}
             </Text>
           )}
@@ -185,9 +203,7 @@ export function SettingsScreen({
 
         {/* Insights */}
         <FormCard isDarkMode={isDarkMode}>
-          <Text
-            style={[styles.cardTitle, isDarkMode && styles.textPrimaryDark]}
-          >
+          <Text style={[styles.cardTitle, { color: palette.textPrimary }]}>
             Insights
           </Text>
           <View style={styles.insightRow}>
@@ -198,6 +214,7 @@ export function SettingsScreen({
                 pressed && styles.pressed,
               ]}
             >
+              <Ionicons name="sparkles-outline" size={16} color="#FFFFFF" />
               <Text style={styles.insightBtnLabel}>AI Review</Text>
             </Pressable>
             <Pressable
@@ -207,6 +224,7 @@ export function SettingsScreen({
                 pressed && styles.pressed,
               ]}
             >
+              <Ionicons name="warning-outline" size={16} color="#FFFFFF" />
               <Text style={styles.insightBtnLabel}>Suspicious Foods</Text>
             </Pressable>
           </View>
@@ -214,16 +232,13 @@ export function SettingsScreen({
 
         {/* Backup & Restore */}
         <FormCard isDarkMode={isDarkMode}>
-          <Text
-            style={[styles.cardTitle, isDarkMode && styles.textPrimaryDark]}
-          >
+          <Text style={[styles.cardTitle, { color: palette.textPrimary }]}>
             Backup & Restore
           </Text>
           <Text
             style={[
               styles.helperText,
-              isDarkMode && styles.textSecondaryDark,
-              { marginBottom: 14 },
+              { color: palette.textSecondary, marginBottom: 14 },
             ]}
           >
             {
@@ -231,24 +246,37 @@ export function SettingsScreen({
             }
           </Text>
           {[
-            { label: "Save Backup Now", onPress: onManualBackup },
-            { label: "Export / Share Backup File", onPress: onExportBackup },
-            { label: "Import & Restore from Backup", onPress: onImportBackup },
-          ].map(({ label, onPress }) => (
+            {
+              label: "Save Backup Now",
+              onPress: onManualBackup,
+              icon: "save-outline" as const,
+            },
+            {
+              label: "Export / Share Backup File",
+              onPress: onExportBackup,
+              icon: "share-outline" as const,
+            },
+            {
+              label: "Import & Restore from Backup",
+              onPress: onImportBackup,
+              icon: "download-outline" as const,
+            },
+          ].map(({ label, onPress, icon }) => (
             <Pressable
               key={label}
               onPress={onPress}
               style={({ pressed }) => [
                 styles.button,
-                isDarkMode && styles.buttonDark,
+                {
+                  backgroundColor: palette.surfaceMuted,
+                  borderColor: palette.border,
+                },
                 pressed && styles.pressed,
               ]}
             >
+              <Ionicons name={icon} size={16} color={palette.textPrimary} />
               <Text
-                style={[
-                  styles.buttonLabel,
-                  isDarkMode && styles.buttonLabelDark,
-                ]}
+                style={[styles.buttonLabel, { color: palette.textPrimary }]}
               >
                 {label}
               </Text>
@@ -295,19 +323,17 @@ export function SettingsScreen({
           onPress={() => setShowResetConfirm(false)}
         >
           <Pressable
-            style={[styles.modalCard, isDarkMode && styles.modalCardDark]}
+            style={[
+              styles.modalCard,
+              { backgroundColor: palette.surface, borderColor: palette.border },
+            ]}
             onPress={() => undefined}
           >
-            <Text
-              style={[styles.modalTitle, isDarkMode && styles.textPrimaryDark]}
-            >
+            <Text style={[styles.modalTitle, { color: palette.textPrimary }]}>
               Reset Today?
             </Text>
             <Text
-              style={[
-                styles.modalSubtitle,
-                isDarkMode && styles.textSecondaryDark,
-              ]}
+              style={[styles.modalSubtitle, { color: palette.textSecondary }]}
             >
               This will permanently clear all of today's food, water, meds and
               stool entries. This cannot be undone.
@@ -348,7 +374,6 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
   },
   cardTitle: {
-    color: theme.colors.textPrimary,
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 12,
@@ -356,46 +381,33 @@ const styles = StyleSheet.create({
   inputLabel: {
     marginTop: 12,
     marginBottom: 8,
-    color: theme.colors.textPrimary,
     fontWeight: "600",
   },
   input: {
-    backgroundColor: "#FAF8F6",
     borderRadius: theme.radius.md,
     borderWidth: 1,
-    borderColor: "#ECE4DB",
-    color: theme.colors.textPrimary,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
     minHeight: 46,
     marginBottom: 8,
   },
-  inputDark: {
-    backgroundColor: theme.dark.inputBg,
-    borderColor: theme.dark.inputBorder,
-    color: theme.dark.textPrimary,
-  },
   helperText: {
-    color: theme.colors.textSecondary,
     fontSize: 12,
     marginTop: -2,
   },
   button: {
     marginTop: 10,
-    backgroundColor: theme.colors.sageSoft,
     borderRadius: theme.radius.full,
     paddingVertical: 13,
     minHeight: 44,
     alignItems: "center",
-  },
-  buttonDark: {
-    backgroundColor: theme.dark.surfaceMuted,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
     borderWidth: 1,
-    borderColor: theme.dark.border,
   },
-  buttonLabel: { color: "#4A5D4F", fontWeight: "700", fontSize: 14 },
-  buttonLabelDark: { color: theme.dark.textPrimary },
+  buttonLabel: { fontWeight: "700", fontSize: 14 },
   insightRow: { flexDirection: "row", gap: 10, marginTop: 4 },
   insightBtn: {
     flex: 1,
@@ -404,6 +416,8 @@ const styles = StyleSheet.create({
     minHeight: 44,
     alignItems: "center",
     justifyContent: "center",
+    flexDirection: "row",
+    gap: 6,
   },
   insightBtnLabel: { color: "#FFFFFF", fontWeight: "700" },
   infoText: { marginTop: 12, color: "#55735C", fontWeight: "500" },
@@ -424,35 +438,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalCard: {
-    backgroundColor: theme.colors.surface,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 32,
     width: "100%",
     maxWidth: 600,
   },
-  modalCardDark: {
-    backgroundColor: theme.dark.surface,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: theme.dark.border,
-  },
   modalTitle: {
     fontSize: 22,
     fontWeight: "700",
-    color: theme.colors.textPrimary,
     marginBottom: 8,
   },
   modalSubtitle: {
-    color: theme.colors.textSecondary,
     marginBottom: 20,
     fontWeight: "500",
     fontSize: 14,
   },
-  textPrimaryDark: { color: theme.dark.textPrimary },
-  textSecondaryDark: { color: theme.dark.textSecondary },
   pressed: { opacity: 0.8, transform: [{ scale: 0.98 }] },
 });

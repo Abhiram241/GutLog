@@ -5,15 +5,23 @@
  * Includes theme preference, default rest time, units, and data management.
  */
 
-import React from 'react';
-import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ScreenHeader } from '../../components/ScreenHeader';
-import { FormCard } from '../../components/FormCard';
-import { theme } from '../../constants/theme';
-import { GymSettings } from '../../types/gym';
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { FormCard } from "../../components/FormCard";
+import { theme } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
+import { GymSettings } from "../../types/gym";
 
 interface GymSettingsScreenProps {
   gymSettings: GymSettings;
@@ -35,21 +43,24 @@ export function GymSettingsScreen({
   backupMessage,
 }: GymSettingsScreenProps) {
   const insets = useSafeAreaInsets();
+  const { palette } = useAppTheme();
 
   const updateSetting = <K extends keyof GymSettings>(
     key: K,
-    value: GymSettings[K]
+    value: GymSettings[K],
   ) => {
     onSettingsChange({ ...gymSettings, [key]: value });
   };
 
   return (
-    <View style={styles.container}>
-      <ScreenHeader
-        title="Gym Settings"
-        subtitle="Customize your experience"
-        isDarkMode={isDarkMode}
-      />
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
+      <View style={styles.screenPad}>
+        <ScreenHeader
+          title="Gym Settings"
+          subtitle="Customize your experience"
+          isDarkMode={isDarkMode}
+        />
+      </View>
 
       <ScrollView
         style={styles.scrollView}
@@ -60,45 +71,51 @@ export function GymSettingsScreen({
       >
         {/* Workout Settings */}
         <FormCard isDarkMode={isDarkMode}>
-          <Text style={[styles.sectionTitle, isDarkMode && styles.textPrimary]}>
+          <Text style={[styles.sectionTitle, { color: palette.textPrimary }]}>
             Workout Settings
           </Text>
 
           {/* Default Rest Time */}
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
-              <Feather
-                name="clock"
-                size={20}
-                color={isDarkMode ? theme.dark.textSecondary : theme.colors.textSecondary}
-              />
+              <Feather name="clock" size={20} color={palette.textSecondary} />
               <View>
-                <Text style={[styles.settingLabel, isDarkMode && styles.textPrimary]}>
+                <Text
+                  style={[styles.settingLabel, { color: palette.textPrimary }]}
+                >
                   Default Rest Time
                 </Text>
-                <Text style={[styles.settingDesc, isDarkMode && styles.textSecondary]}>
+                <Text
+                  style={[styles.settingDesc, { color: palette.textSecondary }]}
+                >
                   {gymSettings.defaultRestSeconds} seconds
                 </Text>
               </View>
             </View>
             <View style={styles.restButtons}>
               <TouchableOpacity
-                style={[styles.restButton, isDarkMode && styles.restButtonDark]}
+                style={[
+                  styles.restButton,
+                  { backgroundColor: palette.surfaceMuted },
+                ]}
                 onPress={() =>
                   updateSetting(
-                    'defaultRestSeconds',
-                    Math.max(15, gymSettings.defaultRestSeconds - 15)
+                    "defaultRestSeconds",
+                    Math.max(15, gymSettings.defaultRestSeconds - 15),
                   )
                 }
               >
                 <Feather name="minus" size={16} color="#4ECDC4" />
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.restButton, isDarkMode && styles.restButtonDark]}
+                style={[
+                  styles.restButton,
+                  { backgroundColor: palette.surfaceMuted },
+                ]}
                 onPress={() =>
                   updateSetting(
-                    'defaultRestSeconds',
-                    Math.min(300, gymSettings.defaultRestSeconds + 15)
+                    "defaultRestSeconds",
+                    Math.min(300, gymSettings.defaultRestSeconds + 15),
                   )
                 }
               >
@@ -113,21 +130,25 @@ export function GymSettingsScreen({
               <Feather
                 name="play-circle"
                 size={20}
-                color={isDarkMode ? theme.dark.textSecondary : theme.colors.textSecondary}
+                color={palette.textSecondary}
               />
               <View>
-                <Text style={[styles.settingLabel, isDarkMode && styles.textPrimary]}>
+                <Text
+                  style={[styles.settingLabel, { color: palette.textPrimary }]}
+                >
                   Auto-start Rest Timer
                 </Text>
-                <Text style={[styles.settingDesc, isDarkMode && styles.textSecondary]}>
+                <Text
+                  style={[styles.settingDesc, { color: palette.textSecondary }]}
+                >
                   Start timer after completing a set
                 </Text>
               </View>
             </View>
             <Switch
               value={gymSettings.autoStartRest}
-              onValueChange={(value) => updateSetting('autoStartRest', value)}
-              trackColor={{ false: theme.colors.surfaceMuted, true: '#4ECDC4' }}
+              onValueChange={(value) => updateSetting("autoStartRest", value)}
+              trackColor={{ false: palette.surfaceMuted, true: "#4ECDC4" }}
               thumbColor="#FFFFFF"
             />
           </View>
@@ -135,24 +156,24 @@ export function GymSettingsScreen({
           {/* Keep Screen Awake */}
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
-              <Feather
-                name="sun"
-                size={20}
-                color={isDarkMode ? theme.dark.textSecondary : theme.colors.textSecondary}
-              />
+              <Feather name="sun" size={20} color={palette.textSecondary} />
               <View>
-                <Text style={[styles.settingLabel, isDarkMode && styles.textPrimary]}>
+                <Text
+                  style={[styles.settingLabel, { color: palette.textPrimary }]}
+                >
                   Keep Screen Awake
                 </Text>
-                <Text style={[styles.settingDesc, isDarkMode && styles.textSecondary]}>
+                <Text
+                  style={[styles.settingDesc, { color: palette.textSecondary }]}
+                >
                   Prevent screen from sleeping during workout
                 </Text>
               </View>
             </View>
             <Switch
               value={gymSettings.keepScreenAwake}
-              onValueChange={(value) => updateSetting('keepScreenAwake', value)}
-              trackColor={{ false: theme.colors.surfaceMuted, true: '#4ECDC4' }}
+              onValueChange={(value) => updateSetting("keepScreenAwake", value)}
+              trackColor={{ false: palette.surfaceMuted, true: "#4ECDC4" }}
               thumbColor="#FFFFFF"
             />
           </View>
@@ -160,24 +181,26 @@ export function GymSettingsScreen({
           {/* Show Previous Workout */}
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
-              <Feather
-                name="eye"
-                size={20}
-                color={isDarkMode ? theme.dark.textSecondary : theme.colors.textSecondary}
-              />
+              <Feather name="eye" size={20} color={palette.textSecondary} />
               <View>
-                <Text style={[styles.settingLabel, isDarkMode && styles.textPrimary]}>
+                <Text
+                  style={[styles.settingLabel, { color: palette.textPrimary }]}
+                >
                   Show Previous Values
                 </Text>
-                <Text style={[styles.settingDesc, isDarkMode && styles.textSecondary]}>
+                <Text
+                  style={[styles.settingDesc, { color: palette.textSecondary }]}
+                >
                   Display last workout data while tracking
                 </Text>
               </View>
             </View>
             <Switch
               value={gymSettings.showPreviousWorkout}
-              onValueChange={(value) => updateSetting('showPreviousWorkout', value)}
-              trackColor={{ false: theme.colors.surfaceMuted, true: '#4ECDC4' }}
+              onValueChange={(value) =>
+                updateSetting("showPreviousWorkout", value)
+              }
+              trackColor={{ false: palette.surfaceMuted, true: "#4ECDC4" }}
               thumbColor="#FFFFFF"
             />
           </View>
@@ -185,7 +208,7 @@ export function GymSettingsScreen({
 
         {/* Units */}
         <FormCard isDarkMode={isDarkMode}>
-          <Text style={[styles.sectionTitle, isDarkMode && styles.textPrimary]}>
+          <Text style={[styles.sectionTitle, { color: palette.textPrimary }]}>
             Units
           </Text>
 
@@ -193,15 +216,16 @@ export function GymSettingsScreen({
             <TouchableOpacity
               style={[
                 styles.unitOption,
-                gymSettings.weightUnit === 'kg' && styles.unitOptionActive,
-                isDarkMode && styles.unitOptionDark,
+                { backgroundColor: palette.surfaceMuted },
+                gymSettings.weightUnit === "kg" && styles.unitOptionActive,
               ]}
-              onPress={() => updateSetting('weightUnit', 'kg')}
+              onPress={() => updateSetting("weightUnit", "kg")}
             >
               <Text
                 style={[
                   styles.unitText,
-                  gymSettings.weightUnit === 'kg' && styles.unitTextActive,
+                  { color: palette.textSecondary },
+                  gymSettings.weightUnit === "kg" && styles.unitTextActive,
                 ]}
               >
                 Kilograms (kg)
@@ -210,15 +234,16 @@ export function GymSettingsScreen({
             <TouchableOpacity
               style={[
                 styles.unitOption,
-                gymSettings.weightUnit === 'lbs' && styles.unitOptionActive,
-                isDarkMode && styles.unitOptionDark,
+                { backgroundColor: palette.surfaceMuted },
+                gymSettings.weightUnit === "lbs" && styles.unitOptionActive,
               ]}
-              onPress={() => updateSetting('weightUnit', 'lbs')}
+              onPress={() => updateSetting("weightUnit", "lbs")}
             >
               <Text
                 style={[
                   styles.unitText,
-                  gymSettings.weightUnit === 'lbs' && styles.unitTextActive,
+                  { color: palette.textSecondary },
+                  gymSettings.weightUnit === "lbs" && styles.unitTextActive,
                 ]}
               >
                 Pounds (lbs)
@@ -229,34 +254,38 @@ export function GymSettingsScreen({
 
         {/* Theme */}
         <FormCard isDarkMode={isDarkMode}>
-          <Text style={[styles.sectionTitle, isDarkMode && styles.textPrimary]}>
+          <Text style={[styles.sectionTitle, { color: palette.textPrimary }]}>
             Gym Theme
           </Text>
 
           <View style={styles.themeOptions}>
-            {(['warm', 'energetic', 'dark'] as const).map((themeOption) => (
+            {(["warm", "energetic", "dark"] as const).map((themeOption) => (
               <TouchableOpacity
                 key={themeOption}
                 style={[
                   styles.themeOption,
-                  gymSettings.gymTheme === themeOption && styles.themeOptionActive,
-                  isDarkMode && styles.themeOptionDark,
+                  { backgroundColor: palette.surfaceMuted },
+                  gymSettings.gymTheme === themeOption &&
+                    styles.themeOptionActive,
                 ]}
-                onPress={() => updateSetting('gymTheme', themeOption)}
+                onPress={() => updateSetting("gymTheme", themeOption)}
               >
                 <View
                   style={[
                     styles.themePreview,
-                    themeOption === 'warm' && { backgroundColor: '#E08E79' },
-                    themeOption === 'energetic' && { backgroundColor: '#4ECDC4' },
-                    themeOption === 'dark' && { backgroundColor: '#161B27' },
+                    themeOption === "warm" && { backgroundColor: "#E08E79" },
+                    themeOption === "energetic" && {
+                      backgroundColor: "#4ECDC4",
+                    },
+                    themeOption === "dark" && { backgroundColor: "#161B27" },
                   ]}
                 />
                 <Text
                   style={[
                     styles.themeLabel,
-                    gymSettings.gymTheme === themeOption && styles.themeLabelActive,
-                    isDarkMode && styles.textSecondary,
+                    { color: palette.textSecondary },
+                    gymSettings.gymTheme === themeOption &&
+                      styles.themeLabelActive,
                   ]}
                 >
                   {themeOption.charAt(0).toUpperCase() + themeOption.slice(1)}
@@ -268,12 +297,15 @@ export function GymSettingsScreen({
 
         {/* Data Management */}
         <FormCard isDarkMode={isDarkMode}>
-          <Text style={[styles.sectionTitle, isDarkMode && styles.textPrimary]}>
+          <Text style={[styles.sectionTitle, { color: palette.textPrimary }]}>
             Data Management
           </Text>
 
           <TouchableOpacity
-            style={[styles.dataButton, isDarkMode && styles.dataButtonDark]}
+            style={[
+              styles.dataButton,
+              { backgroundColor: palette.surfaceMuted },
+            ]}
             onPress={onExportData}
           >
             <Feather name="upload" size={20} color="#4ECDC4" />
@@ -281,7 +313,10 @@ export function GymSettingsScreen({
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.dataButton, isDarkMode && styles.dataButtonDark]}
+            style={[
+              styles.dataButton,
+              { backgroundColor: palette.surfaceMuted },
+            ]}
             onPress={onImportData}
           >
             <Feather name="download" size={20} color="#4ECDC4" />
@@ -289,17 +324,16 @@ export function GymSettingsScreen({
           </TouchableOpacity>
 
           {backupMessage ? (
-            <Text style={[styles.backupMessage, isDarkMode && styles.textSecondary]}>
+            <Text
+              style={[styles.backupMessage, { color: palette.textSecondary }]}
+            >
               {backupMessage}
             </Text>
           ) : null}
         </FormCard>
 
         {/* Exit Gym Mode */}
-        <TouchableOpacity
-          style={styles.exitButton}
-          onPress={onExitGymMode}
-        >
+        <TouchableOpacity style={styles.exitButton} onPress={onExitGymMode}>
           <Feather name="log-out" size={20} color={theme.colors.danger} />
           <Text style={styles.exitButtonText}>Exit Gym Mode</Text>
         </TouchableOpacity>
@@ -312,6 +346,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  screenPad: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.lg,
+  },
   scrollView: {
     flex: 1,
   },
@@ -321,7 +359,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: theme.colors.textPrimary,
     marginBottom: theme.spacing.lg,
   },
@@ -332,22 +370,23 @@ const styles = StyleSheet.create({
     color: theme.dark.textSecondary,
   },
   settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: theme.spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.surfaceMuted,
   },
+
   settingInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: theme.spacing.md,
     flex: 1,
   },
   settingLabel: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
     color: theme.colors.textPrimary,
   },
   settingDesc: {
@@ -356,7 +395,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   restButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: theme.spacing.sm,
   },
   restButton: {
@@ -364,14 +403,14 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: theme.radius.full,
     backgroundColor: theme.colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   restButtonDark: {
     backgroundColor: theme.dark.surfaceMuted,
   },
   unitSelector: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: theme.spacing.md,
   },
   unitOption: {
@@ -380,40 +419,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
     borderRadius: theme.radius.md,
     backgroundColor: theme.colors.surfaceMuted,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: "transparent",
   },
   unitOptionActive: {
-    borderColor: '#4ECDC4',
-    backgroundColor: 'rgba(78, 205, 196, 0.1)',
+    borderColor: "#4ECDC4",
+    backgroundColor: "rgba(78, 205, 196, 0.1)",
   },
   unitOptionDark: {
     backgroundColor: theme.dark.surfaceMuted,
   },
   unitText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: theme.colors.textSecondary,
   },
   unitTextActive: {
-    color: '#4ECDC4',
+    color: "#4ECDC4",
   },
   themeOptions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: theme.spacing.md,
   },
   themeOption: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: theme.spacing.md,
     borderRadius: theme.radius.md,
     backgroundColor: theme.colors.surfaceMuted,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: "transparent",
   },
   themeOptionActive: {
-    borderColor: '#4ECDC4',
+    borderColor: "#4ECDC4",
   },
   themeOptionDark: {
     backgroundColor: theme.dark.surfaceMuted,
@@ -426,15 +465,15 @@ const styles = StyleSheet.create({
   },
   themeLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     color: theme.colors.textSecondary,
   },
   themeLabelActive: {
-    color: '#4ECDC4',
+    color: "#4ECDC4",
   },
   dataButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: theme.spacing.md,
     paddingVertical: theme.spacing.md,
     paddingHorizontal: theme.spacing.lg,
@@ -447,19 +486,19 @@ const styles = StyleSheet.create({
   },
   dataButtonText: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#4ECDC4',
+    fontWeight: "600",
+    color: "#4ECDC4",
   },
   backupMessage: {
     fontSize: 13,
     color: theme.colors.textSecondary,
     marginTop: theme.spacing.sm,
-    textAlign: 'center',
+    textAlign: "center",
   },
   exitButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: theme.spacing.sm,
     paddingVertical: theme.spacing.lg,
     marginTop: theme.spacing.md,
@@ -469,7 +508,7 @@ const styles = StyleSheet.create({
   },
   exitButtonText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     color: theme.colors.danger,
   },
 });

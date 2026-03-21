@@ -15,6 +15,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 
 import { CalendarPicker } from "../components/CalendarPicker";
 import { DateSwitcher } from "../components/DateSwitcher";
@@ -28,6 +29,7 @@ import {
   satisfactionOptions,
 } from "../constants/mealMeta";
 import { theme } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 import { DayLog, MedItem, StoolEntry } from "../types";
 import { getPastDateKeys, shiftDateKey } from "../utils/date";
 import { createEmptyDayLog } from "../utils/logHelpers";
@@ -78,6 +80,7 @@ export function StoolScreen({
   onSave,
 }: StoolScreenProps) {
   const insets = useSafeAreaInsets();
+  const { palette } = useAppTheme();
   const [calendarVisible, setCalendarVisible] = React.useState(false);
 
   return (
@@ -90,11 +93,14 @@ export function StoolScreen({
       <ScreenHeader
         title="Stool Log"
         subtitle="Track patterns and correlations"
+        icon="analytics-outline"
         isDarkMode={isDarkMode}
       />
 
       {/* Tab toggle */}
-      <View style={[styles.tabToggle, isDarkMode && styles.tabToggleDark]}>
+      <View
+        style={[styles.tabToggle, { backgroundColor: palette.surfaceMuted }]}
+      >
         {(["entry", "correlation"] as const).map((tab) => (
           <Pressable
             key={tab}
@@ -102,16 +108,14 @@ export function StoolScreen({
             style={({ pressed }) => [
               styles.segment,
               stoolTab === tab && styles.segmentActive,
-              stoolTab === tab && isDarkMode && styles.segmentActiveDark,
               pressed && styles.pressed,
             ]}
           >
             <Text
               style={[
                 styles.segmentLabel,
-                isDarkMode && styles.textSecondaryDark,
+                { color: palette.textSecondary },
                 stoolTab === tab && styles.segmentLabelActive,
-                stoolTab === tab && isDarkMode && styles.textPrimaryDark,
               ]}
             >
               {tab === "entry" ? "Log Entry" : "Correlation View"}
@@ -122,9 +126,7 @@ export function StoolScreen({
 
       {stoolTab === "entry" ? (
         <FormCard isDarkMode={isDarkMode}>
-          <Text
-            style={[styles.cardTitle, isDarkMode && styles.textPrimaryDark]}
-          >
+          <Text style={[styles.cardTitle, { color: palette.textPrimary }]}>
             New Entry
           </Text>
 
@@ -145,13 +147,18 @@ export function StoolScreen({
             value={stoolTime}
             onChangeText={onTimeChange}
             placeholder="HH:MM"
-            placeholderTextColor={theme.colors.textMuted}
-            style={[styles.input, isDarkMode && styles.inputDark]}
+            placeholderTextColor={palette.textMuted}
+            style={[
+              styles.input,
+              {
+                backgroundColor: palette.inputBg,
+                borderColor: palette.inputBorder,
+                color: palette.textPrimary,
+              },
+            ]}
           />
 
-          <Text
-            style={[styles.inputLabel, isDarkMode && styles.textSecondaryDark]}
-          >
+          <Text style={[styles.inputLabel, { color: palette.textPrimary }]}>
             Consistency
           </Text>
           <OptionChips
@@ -161,9 +168,7 @@ export function StoolScreen({
             isDarkMode={isDarkMode}
           />
 
-          <Text
-            style={[styles.inputLabel, isDarkMode && styles.textSecondaryDark]}
-          >
+          <Text style={[styles.inputLabel, { color: palette.textPrimary }]}>
             Color
           </Text>
           <OptionChips
@@ -173,9 +178,7 @@ export function StoolScreen({
             isDarkMode={isDarkMode}
           />
 
-          <Text
-            style={[styles.inputLabel, isDarkMode && styles.textSecondaryDark]}
-          >
+          <Text style={[styles.inputLabel, { color: palette.textPrimary }]}>
             Satisfaction
           </Text>
           <OptionChips
@@ -189,12 +192,16 @@ export function StoolScreen({
             value={stoolNotes}
             onChangeText={onNotesChange}
             placeholder="Optional notes (max 200 chars)"
-            placeholderTextColor={theme.colors.textMuted}
+            placeholderTextColor={palette.textMuted}
             multiline
             maxLength={200}
             style={[
               styles.input,
-              isDarkMode && styles.inputDark,
+              {
+                backgroundColor: palette.inputBg,
+                borderColor: palette.inputBorder,
+                color: palette.textPrimary,
+              },
               styles.notesInput,
             ]}
           />
@@ -203,28 +210,32 @@ export function StoolScreen({
             onPress={onSave}
             style={({ pressed }) => [
               styles.button,
-              isDarkMode && styles.buttonDark,
+              {
+                backgroundColor: palette.surfaceMuted,
+                borderColor: palette.border,
+              },
               pressed && styles.pressed,
             ]}
           >
-            <Text
-              style={[styles.buttonLabel, isDarkMode && styles.buttonLabelDark]}
-            >
+            <Ionicons
+              name="save-outline"
+              size={16}
+              color={palette.textPrimary}
+            />
+            <Text style={[styles.buttonLabel, { color: palette.textPrimary }]}>
               Save Stool Entry
             </Text>
           </Pressable>
 
           {!!stoolMessage && (
-            <Text style={[styles.infoText, isDarkMode && { color: "#6FCF97" }]}>
+            <Text style={[styles.infoText, { color: "#6FCF97" }]}>
               {stoolMessage}
             </Text>
           )}
         </FormCard>
       ) : (
         <FormCard isDarkMode={isDarkMode}>
-          <Text
-            style={[styles.cardTitle, isDarkMode && styles.textPrimaryDark]}
-          >
+          <Text style={[styles.cardTitle, { color: palette.textPrimary }]}>
             Last 7 days summary
           </Text>
           {getPastDateKeys(7).map((dateKey) => {
@@ -246,15 +257,12 @@ export function StoolScreen({
                 key={dateKey}
                 style={[
                   styles.timelineRow,
-                  isDarkMode && { borderBottomColor: theme.dark.border },
+                  { borderBottomColor: palette.border },
                 ]}
               >
                 <View style={styles.dateCol}>
                   <Text
-                    style={[
-                      styles.dateText,
-                      isDarkMode && styles.textPrimaryDark,
-                    ]}
+                    style={[styles.dateText, { color: palette.textPrimary }]}
                   >
                     {dateKey}
                   </Text>
@@ -264,7 +272,7 @@ export function StoolScreen({
                   <Text
                     style={[
                       styles.timelineMain,
-                      isDarkMode && styles.textPrimaryDark,
+                      { color: palette.textPrimary },
                     ]}
                   >
                     {lastStool
@@ -274,7 +282,7 @@ export function StoolScreen({
                   <Text
                     style={[
                       styles.timelineSub,
-                      isDarkMode && styles.textSecondaryDark,
+                      { color: palette.textSecondary },
                     ]}
                   >
                     Foods: {foods.length ? foods.join(", ") : "-"}
@@ -282,7 +290,7 @@ export function StoolScreen({
                   <Text
                     style={[
                       styles.timelineSub,
-                      isDarkMode && styles.textSecondaryDark,
+                      { color: palette.textSecondary },
                     ]}
                   >
                     Meds: {meds.length ? meds.join(", ") : "-"}
@@ -314,12 +322,10 @@ const styles = StyleSheet.create({
   },
   tabToggle: {
     flexDirection: "row",
-    backgroundColor: "#F4EEE7",
     borderRadius: theme.radius.full,
     padding: 4,
     marginBottom: theme.spacing.md,
   },
-  tabToggleDark: { backgroundColor: theme.dark.surfaceMuted },
   segment: {
     flex: 1,
     minHeight: 44,
@@ -327,12 +333,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderRadius: theme.radius.full,
   },
-  segmentActive: { backgroundColor: theme.colors.surface },
-  segmentActiveDark: { backgroundColor: theme.dark.surfaceElevated },
-  segmentLabel: { color: theme.colors.textSecondary, fontWeight: "600" },
-  segmentLabelActive: { color: theme.colors.textPrimary },
+  segmentActive: {
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    borderColor: "#E08E79",
+  },
+  segmentLabel: { fontWeight: "600" },
+  segmentLabelActive: {
+    color: "#E08E79",
+    fontWeight: "700",
+  },
   cardTitle: {
-    color: theme.colors.textPrimary,
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 12,
@@ -340,70 +351,52 @@ const styles = StyleSheet.create({
   inputLabel: {
     marginTop: 12,
     marginBottom: 8,
-    color: theme.colors.textPrimary,
     fontWeight: "600",
   },
   input: {
-    backgroundColor: "#FAF8F6",
     borderRadius: theme.radius.md,
     borderWidth: 1,
-    borderColor: "#ECE4DB",
-    color: theme.colors.textPrimary,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
     minHeight: 46,
     marginBottom: 8,
   },
-  inputDark: {
-    backgroundColor: theme.dark.inputBg,
-    borderColor: theme.dark.inputBorder,
-    color: theme.dark.textPrimary,
-  },
   notesInput: { minHeight: 88, textAlignVertical: "top" },
   button: {
     marginTop: 10,
-    backgroundColor: theme.colors.sageSoft,
     borderRadius: theme.radius.full,
     paddingVertical: 13,
     minHeight: 44,
     alignItems: "center",
-  },
-  buttonDark: {
-    backgroundColor: theme.dark.surfaceMuted,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
     borderWidth: 1,
-    borderColor: theme.dark.border,
   },
-  buttonLabel: { color: "#4A5D4F", fontWeight: "700", fontSize: 14 },
-  buttonLabelDark: { color: theme.dark.textPrimary },
-  infoText: { marginTop: 12, color: "#55735C", fontWeight: "500" },
+  buttonLabel: { fontWeight: "700", fontSize: 14 },
+  infoText: { marginTop: 12, fontWeight: "500" },
   timelineRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: "#F0E8DF",
     paddingVertical: 12,
     gap: 10,
   },
   dateCol: { width: 94 },
   dateText: {
-    color: theme.colors.textPrimary,
     fontWeight: "700",
     fontSize: 12,
   },
   emoji: { marginTop: 6, fontSize: 17 },
   timelineDetails: { flex: 1 },
   timelineMain: {
-    color: theme.colors.textPrimary,
     fontWeight: "600",
     fontSize: 13,
     marginBottom: 4,
   },
   timelineSub: {
-    color: theme.colors.textSecondary,
     fontSize: 12,
     lineHeight: 18,
   },
-  textPrimaryDark: { color: theme.dark.textPrimary },
-  textSecondaryDark: { color: theme.dark.textSecondary },
   pressed: { opacity: 0.8, transform: [{ scale: 0.98 }] },
 });

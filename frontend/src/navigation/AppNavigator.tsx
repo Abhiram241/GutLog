@@ -25,18 +25,20 @@ import {
   KeyboardAvoidingView,
   LayoutAnimation,
   Platform,
+  Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AddFoodModal } from "../components/AddFoodModal";
 import { BottomNav } from "../components/BottomNav";
 import { CalendarPicker } from "../components/CalendarPicker";
-import { GymModeToggle } from "../components/gym/GymModeToggle";
+import { GymAlert } from "../components/gym/GymAlert";
+import { ThemeProvider } from "../context/ThemeContext";
 import { useAIReview } from "../hooks/useAIReview";
 import { useAppData } from "../hooks/useAppData";
 import { useMeals } from "../hooks/useMeals";
@@ -69,7 +71,7 @@ export function AppNavigator() {
   // ─── Global state ────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<AppTab>("home");
   const [extraPage, setExtraPage] = useState<ExtraPage | null>(null);
-  const [showBootSpinner, setShowBootSpinner] = useState(true);
+  const [showBootSpinner] = useState(false); // removed artificial delay
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [currentDateKey, setCurrentDateKey] = useState("");
   const [calendarTarget, setCalendarTarget] = useState<
@@ -81,6 +83,8 @@ export function AppNavigator() {
   // ─── Gym Mode State ────────────────────────────────────────────────────────────
   const [isGymMode, setIsGymMode] = useState(false);
   const [gymModeLoaded, setGymModeLoaded] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [comingSoonVisible, setComingSoonVisible] = useState(false);
 
   // ─── Data & theme hooks ──────────────────────────────────────────────────────
   const {
@@ -129,10 +133,7 @@ export function AppNavigator() {
   const aiReview = useAIReview({ allLogs, medsMaster, settings });
 
   // ─── Boot spinner ────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const timer = setTimeout(() => setShowBootSpinner(false), 900);
-    return () => clearTimeout(timer);
-  }, []);
+  // Removed artificial delay - app loads as soon as data is ready
 
   // ─── Keyboard listener ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -154,6 +155,17 @@ export function AppNavigator() {
     setIsGymMode(newValue);
     await setGymModeEnabled(newValue);
   }, [isGymMode]);
+
+  const handleOpenGym = useCallback(async () => {
+    setMenuVisible(false);
+    setIsGymMode(true);
+    await setGymModeEnabled(true);
+  }, []);
+
+  const handleExitGymMode = useCallback(async () => {
+    setIsGymMode(false);
+    await setGymModeEnabled(false);
+  }, []);
 
   // ─── Settings handlers ───────────────────────────────────────────────────────
   const handleSaveApiKey = useCallback(async () => {
@@ -223,8 +235,75 @@ export function AppNavigator() {
     setSettingsMessage("Today's log has been reset.");
   }, [resetToday, todayKey]);
 
+  // ─── Menu renderer ───────────────────────────────────────────────────────────
+  const renderMenu = () => (
+    <Pressable style={styles.menuOverlay} onPress={() => setMenuVisible(false)}>
+      <View
+        style={[
+          styles.menuCard,
+          { backgroundColor: isDarkMode ? "#161B27" : "#FFFFFF" },
+        ]}
+      >
+        <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+          {[
+            {
+              label: "Food Diary",
+              icon: "book-open" as const,
+              onPress: () => {
+                setMenuVisible(false);
+                if (isGymMode) handleExitGymMode();
+                setActiveTab("home");
+              },
+            },
+            {
+              label: "Gym",
+              icon: "activity" as const,
+              onPress: () => {
+                setMenuVisible(false);
+                handleOpenGym();
+              },
+            },
+            {
+              label: "Habit Tracker",
+              icon: "check-square" as const,
+              onPress: () => {
+                setMenuVisible(false);
+                setComingSoonVisible(true);
+              },
+            },
+          ].map((item, i, arr) => (
+            <Pressable
+              key={item.label}
+              style={({ pressed }) => [
+                styles.menuItem,
+                i < arr.length - 1 && {
+                  borderBottomWidth: 1,
+                  borderBottomColor: isDarkMode
+                    ? "rgba(255,255,255,0.07)"
+                    : "rgba(0,0,0,0.07)",
+                },
+                pressed && styles.pressed,
+              ]}
+              onPress={item.onPress}
+            >
+              <Feather name={item.icon} size={18} color="#4ECDC4" />
+              <Text
+                style={[
+                  styles.menuItemText,
+                  { color: isDarkMode ? "#EDF2FF" : "#2D3436" },
+                ]}
+              >
+                {item.label}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
+    </Pressable>
+  );
+
   // ─── Loading state ───────────────────────────────────────────────────────────
-  if (isLoading || showBootSpinner || !currentDateKey || !gymModeLoaded) {
+  if (isLoading || !currentDateKey || !gymModeLoaded) {
     return (
       <SafeAreaView
         style={[styles.safeArea, { backgroundColor: palette.background }]}
@@ -241,7 +320,7 @@ export function AppNavigator() {
               isDarkMode && { color: theme.dark.textSecondary },
             ]}
           >
-            Loading GutLogs...
+            Loading NextCore...
           </Text>
         </View>
       </SafeAreaView>
@@ -251,10 +330,27 @@ export function AppNavigator() {
   // ─── Gym Mode ────────────────────────────────────────────────────────────────
   if (isGymMode) {
     return (
-      <GymNavigator
-        themePreference={settings.themePreference}
-        onExitGymMode={handleToggleGymMode}
-      />
+      <ThemeProvider isDarkMode={isDarkMode}>
+        <View style={{ flex: 1 }}>
+          <GymNavigator
+            themePreference={settings.themePreference}
+            onExitGymMode={handleExitGymMode}
+            onOpenMenu={() => setMenuVisible(true)}
+          />
+          {/* Menu overlay rendered on top of gym mode too */}
+          {menuVisible && renderMenu()}
+          <GymAlert
+            visible={comingSoonVisible}
+            title="Coming Soon"
+            message="Habit Tracker is under development. Stay tuned!"
+            buttons={[{ text: "Got it", style: "default" }]}
+            isDarkMode={isDarkMode}
+            icon="clock"
+            iconColor="#4ECDC4"
+            onDismiss={() => setComingSoonVisible(false)}
+          />
+        </View>
+      </ThemeProvider>
     );
   }
 
@@ -384,105 +480,133 @@ export function AppNavigator() {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.safeArea, { backgroundColor: palette.background }]}
-    >
-      <StatusBar
-        style={isDarkMode ? "light" : "dark"}
-        backgroundColor={palette.background}
-      />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 6 : 0}
-        style={styles.safeArea}
+    <ThemeProvider isDarkMode={isDarkMode}>
+      <SafeAreaView
+        style={[styles.safeArea, { backgroundColor: palette.background }]}
       >
-        <View
-          style={[styles.container, { backgroundColor: palette.background }]}
+        <StatusBar
+          style={isDarkMode ? "light" : "dark"}
+          backgroundColor={palette.background}
+        />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 6 : 0}
+          style={styles.safeArea}
         >
-          {/* Gym Mode Toggle - shown on home screen */}
-          {activeTab === "home" && !extraPage && (
-            <View style={styles.gymToggleContainer}>
-              <GymModeToggle
-                isGymMode={isGymMode}
-                onToggle={handleToggleGymMode}
-                isDarkMode={isDarkMode}
-              />
-            </View>
-          )}
+          <View
+            style={[styles.container, { backgroundColor: palette.background }]}
+          >
+            {/* Options Menu button - always visible on home screen */}
+            {activeTab === "home" && !extraPage && (
+              <View style={styles.gymToggleContainer}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.menuButton,
+                    isDarkMode && styles.menuButtonDark,
+                    pressed && styles.pressed,
+                  ]}
+                  onPress={() => setMenuVisible(true)}
+                >
+                  <Feather
+                    name="grid"
+                    size={18}
+                    color={isDarkMode ? "#EDF2FF" : "#E08E79"}
+                  />
+                </Pressable>
+              </View>
+            )}
 
-          {/* Back button for extra pages */}
-          {extraPage ? (
-            <View
-              style={[
-                styles.extraHeader,
-                { backgroundColor: palette.background },
-              ]}
-            >
-              <Pressable
-                onPress={() => setExtraPage(null)}
-                style={({ pressed }) => [
-                  styles.backButton,
-                  pressed && styles.pressed,
+            {/* Options dropdown menu */}
+            {menuVisible && renderMenu()}
+
+            {/* Coming Soon alert */}
+            <GymAlert
+              visible={comingSoonVisible}
+              title="Coming Soon"
+              message="Habit Tracker is under development. Stay tuned!"
+              buttons={[{ text: "Got it", style: "default" }]}
+              isDarkMode={isDarkMode}
+              icon="clock"
+              iconColor="#4ECDC4"
+              onDismiss={() => setComingSoonVisible(false)}
+            />
+
+            {/* Back button for extra pages */}
+            {extraPage ? (
+              <View
+                style={[
+                  styles.extraHeader,
+                  { backgroundColor: palette.background },
                 ]}
               >
-                <Feather
-                  name="arrow-left"
-                  size={18}
-                  color={palette.textPrimary}
-                />
-                <Text
-                  style={[styles.backLabel, { color: palette.textPrimary }]}
+                <Pressable
+                  onPress={() => setExtraPage(null)}
+                  style={({ pressed }) => [
+                    styles.backButton,
+                    pressed && styles.pressed,
+                  ]}
                 >
-                  Back
-                </Text>
-              </Pressable>
-            </View>
-          ) : null}
+                  <Feather
+                    name="arrow-left"
+                    size={18}
+                    color={palette.textPrimary}
+                  />
+                  <Text
+                    style={[styles.backLabel, { color: palette.textPrimary }]}
+                  >
+                    Back
+                  </Text>
+                </Pressable>
+              </View>
+            ) : null}
 
-          {renderScreen()}
+            {renderScreen()}
 
-          {/* Bottom nav — hidden when keyboard is open or on extra pages */}
-          {!extraPage && !keyboardVisible ? (
-            <BottomNav
-              activeTab={activeTab}
-              onTabPress={setActiveTab}
-              isDarkMode={isDarkMode}
-            />
-          ) : null}
-        </View>
+            {/* Bottom nav — hidden when keyboard is open or on extra pages */}
+            {!extraPage && !keyboardVisible ? (
+              <BottomNav
+                activeTab={activeTab}
+                onTabPress={setActiveTab}
+                isDarkMode={isDarkMode}
+              />
+            ) : null}
+          </View>
 
-        {/* Add food item modal */}
-        <AddFoodModal
-          visible={!!meals.itemModalMeal}
-          mealType={meals.itemModalMeal}
-          itemName={meals.itemName}
-          itemQty={meals.itemQty}
-          itemUnit={meals.itemUnit}
-          isDarkMode={isDarkMode}
-          onClose={meals.closeAddItem}
-          onNameChange={meals.setItemName}
-          onQtyChange={meals.setItemQty}
-          onUnitChange={meals.setItemUnit}
-          onSubmit={() => meals.handleAddFoodItem(currentLog)}
-        />
+          {/* Add food item modal */}
+          <AddFoodModal
+            visible={!!meals.itemModalMeal}
+            mealType={meals.itemModalMeal}
+            itemName={meals.itemName}
+            itemQty={meals.itemQty}
+            itemUnit={meals.itemUnit}
+            isDarkMode={isDarkMode}
+            onClose={meals.closeAddItem}
+            onNameChange={meals.setItemName}
+            onQtyChange={meals.setItemQty}
+            onUnitChange={meals.setItemUnit}
+            onSubmit={() => meals.handleAddFoodItem(currentLog)}
+          />
 
-        {/* Calendar picker */}
-        <CalendarPicker
-          visible={calendarTarget !== null}
-          selectedDate={
-            calendarTarget === "home" ? currentDateKey : aiReview.reviewDateKey
-          }
-          maxDate={todayKey}
-          isDarkMode={isDarkMode}
-          onSelect={(dateKey) => {
-            if (calendarTarget === "home") setCurrentDateKey(dateKey);
-            else if (calendarTarget === "review")
-              aiReview.setReviewDateKey(dateKey);
-          }}
-          onClose={() => setCalendarTarget(null)}
-        />
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          {/* Calendar picker */}
+          <CalendarPicker
+            visible={calendarTarget !== null}
+            selectedDate={
+              calendarTarget === "home"
+                ? currentDateKey
+                : aiReview.reviewDateKey
+            }
+            maxDate={todayKey}
+            isDarkMode={isDarkMode}
+            onSelect={(dateKey) => {
+              if (calendarTarget === "home") setCurrentDateKey(dateKey);
+              else if (calendarTarget === "review")
+                aiReview.setReviewDateKey(dateKey);
+            }}
+            onClose={() => setCalendarTarget(null)}
+          />
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </ThemeProvider>
   );
 }
 
@@ -498,9 +622,56 @@ const styles = StyleSheet.create({
   loaderText: { color: theme.colors.textSecondary, fontSize: 14 },
   gymToggleContainer: {
     position: "absolute",
-    top: theme.spacing.md,
+    top: 11,
     right: theme.spacing.lg,
     zIndex: 100,
+  },
+  menuButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F7E1D7",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: "#D4806A",
+  },
+  menuButtonDark: {
+    backgroundColor: "#1E2A3A",
+    borderColor: "rgba(255,255,255,0.12)",
+  },
+  menuOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 200,
+  },
+  menuCard: {
+    position: "absolute",
+    top: theme.spacing.lg + 48,
+    right: theme.spacing.lg,
+    borderRadius: 14,
+    minWidth: 180,
+    maxHeight: 300,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: "hidden",
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  menuItemText: {
+    fontSize: 15,
+    fontWeight: "600",
   },
   extraHeader: {
     paddingHorizontal: theme.spacing.lg,

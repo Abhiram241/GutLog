@@ -5,7 +5,7 @@
  * Browse, create, edit, and organize workout routines.
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState } from "react";
 import {
   FlatList,
   StyleSheet,
@@ -13,14 +13,15 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ScreenHeader } from '../../components/ScreenHeader';
-import { RoutineCard } from '../../components/gym/RoutineCard';
-import { theme } from '../../constants/theme';
-import { Routine, RoutineFolder } from '../../types/gym';
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { RoutineCard } from "../../components/gym/RoutineCard";
+import { theme } from "../../constants/theme";
+import { useAppTheme } from "../../context/ThemeContext";
+import { Routine, RoutineFolder } from "../../types/gym";
 
 interface GymRoutinesScreenProps {
   routines: Routine[];
@@ -44,7 +45,8 @@ export function GymRoutinesScreen({
   onCreateFolder,
 }: GymRoutinesScreenProps) {
   const insets = useSafeAreaInsets();
-  const [searchQuery, setSearchQuery] = useState('');
+  const { palette } = useAppTheme();
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
 
   // Filter routines based on search and folder
@@ -55,43 +57,41 @@ export function GymRoutinesScreen({
         .includes(searchQuery.toLowerCase());
       const matchesFolder =
         selectedFolderId === null ||
-        (selectedFolderId === 'uncategorized' && !routine.folderId) ||
+        (selectedFolderId === "uncategorized" && !routine.folderId) ||
         routine.folderId === selectedFolderId;
       return matchesSearch && matchesFolder;
     });
   }, [routines, searchQuery, selectedFolderId]);
 
   return (
-    <View style={styles.container}>
-      <ScreenHeader
-        title="Routines"
-        subtitle={`${routines.length} routine${routines.length !== 1 ? 's' : ''}`}
-        isDarkMode={isDarkMode}
-      />
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
+      <View style={styles.screenPad}>
+        <ScreenHeader
+          title="Routines"
+          subtitle={`${routines.length} routine${routines.length !== 1 ? "s" : ""}`}
+          isDarkMode={isDarkMode}
+        />
+      </View>
 
       {/* Search bar */}
       <View style={styles.searchContainer}>
-        <View style={[styles.searchBox, isDarkMode && styles.searchBoxDark]}>
-          <Feather
-            name="search"
-            size={18}
-            color={isDarkMode ? theme.dark.textMuted : theme.colors.textMuted}
-          />
+        <View style={[styles.searchBox, { backgroundColor: palette.surface }]}>
+          <Feather name="search" size={18} color={palette.textMuted} />
           <TextInput
-            style={[styles.searchInput, isDarkMode && styles.searchInputDark]}
+            style={[styles.searchInput, { color: palette.textPrimary }]}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Search routines..."
-            placeholderTextColor={
-              isDarkMode ? theme.dark.textMuted : theme.colors.textMuted
-            }
+            placeholderTextColor={palette.textMuted}
           />
           {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <TouchableOpacity onPress={() => setSearchQuery("")}>
               <Feather
                 name="x"
                 size={18}
-                color={isDarkMode ? theme.dark.textMuted : theme.colors.textMuted}
+                color={
+                  isDarkMode ? theme.dark.textMuted : theme.colors.textMuted
+                }
               />
             </TouchableOpacity>
           )}
@@ -105,9 +105,13 @@ export function GymRoutinesScreen({
             horizontal
             showsHorizontalScrollIndicator={false}
             data={[
-              { id: null, name: 'All', color: '#4ECDC4' },
+              { id: null, name: "All", color: "#4ECDC4" },
               ...folders,
-              { id: 'uncategorized', name: 'Uncategorized', color: theme.colors.textMuted },
+              {
+                id: "uncategorized",
+                name: "Uncategorized",
+                color: theme.colors.textMuted,
+              },
             ]}
             keyExtractor={(item) => String(item.id)}
             contentContainerStyle={styles.filterChips}
@@ -116,21 +120,18 @@ export function GymRoutinesScreen({
                 style={[
                   styles.filterChip,
                   selectedFolderId === item.id && styles.filterChipActive,
-                  isDarkMode && styles.filterChipDark,
+                  { backgroundColor: palette.surface },
                 ]}
                 onPress={() => setSelectedFolderId(item.id)}
               >
                 <View
-                  style={[
-                    styles.folderDot,
-                    { backgroundColor: item.color },
-                  ]}
+                  style={[styles.folderDot, { backgroundColor: item.color }]}
                 />
                 <Text
                   style={[
                     styles.filterChipText,
+                    { color: palette.textSecondary },
                     selectedFolderId === item.id && styles.filterChipTextActive,
-                    isDarkMode && styles.filterChipTextDark,
                   ]}
                 >
                   {item.name}
@@ -151,10 +152,10 @@ export function GymRoutinesScreen({
         ]}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Text style={[styles.emptyText, isDarkMode && styles.textSecondary]}>
+            <Text style={[styles.emptyText, { color: palette.textSecondary }]}>
               {searchQuery
-                ? 'No routines match your search'
-                : 'No routines in this folder'}
+                ? "No routines match your search"
+                : "No routines in this folder"}
             </Text>
           </View>
         }
@@ -173,7 +174,7 @@ export function GymRoutinesScreen({
       {/* Floating action buttons */}
       <View style={[styles.fabContainer, { bottom: insets.bottom + 90 }]}>
         <TouchableOpacity
-          style={[styles.fabSecondary, isDarkMode && styles.fabSecondaryDark]}
+          style={[styles.fabSecondary, { backgroundColor: palette.surface }]}
           onPress={onCreateFolder}
         >
           <Feather name="folder-plus" size={20} color="#4ECDC4" />
@@ -190,13 +191,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  screenPad: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.lg,
+  },
   searchContainer: {
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.md,
   },
   searchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.lg,
     paddingHorizontal: theme.spacing.md,
@@ -224,19 +229,19 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   filterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: theme.spacing.xs,
     backgroundColor: theme.colors.surface,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: theme.radius.full,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: "transparent",
   },
   filterChipActive: {
-    borderColor: '#4ECDC4',
-    backgroundColor: 'rgba(78, 205, 196, 0.1)',
+    borderColor: "#4ECDC4",
+    backgroundColor: "transparent",
   },
   filterChipDark: {
     backgroundColor: theme.dark.surface,
@@ -249,10 +254,10 @@ const styles = StyleSheet.create({
   filterChipText: {
     fontSize: 13,
     color: theme.colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   filterChipTextActive: {
-    color: '#4ECDC4',
+    color: "#4ECDC4",
   },
   filterChipTextDark: {
     color: theme.dark.textSecondary,
@@ -261,7 +266,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
   },
   emptyState: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: theme.spacing.xxxl,
   },
   emptyText: {
@@ -272,18 +277,18 @@ const styles = StyleSheet.create({
     color: theme.dark.textSecondary,
   },
   fabContainer: {
-    position: 'absolute',
+    position: "absolute",
     right: theme.spacing.lg,
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: theme.spacing.md,
   },
   fab: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#4ECDC4',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#4ECDC4",
+    alignItems: "center",
+    justifyContent: "center",
     ...theme.shadow.md,
   },
   fabSecondary: {
@@ -291,11 +296,11 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     backgroundColor: theme.colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'flex-end',
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "flex-end",
     borderWidth: 2,
-    borderColor: '#4ECDC4',
+    borderColor: "#4ECDC4",
   },
   fabSecondaryDark: {
     backgroundColor: theme.dark.surface,

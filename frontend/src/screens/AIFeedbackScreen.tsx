@@ -8,11 +8,13 @@
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 
 import { DateSwitcher } from "../components/DateSwitcher";
 import { FormCard } from "../components/FormCard";
 import { ScreenHeader } from "../components/ScreenHeader";
 import { theme } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 import { AIReviewResult } from "../types";
 import { shiftDateKey } from "../utils/date";
 
@@ -40,6 +42,7 @@ export function AIFeedbackScreen({
   onGenerateReview,
 }: AIFeedbackScreenProps) {
   const insets = useSafeAreaInsets();
+  const { palette } = useAppTheme();
 
   return (
     <ScrollView
@@ -51,6 +54,7 @@ export function AIFeedbackScreen({
       <ScreenHeader
         title="AI Feedback"
         subtitle="Food + meds reaction review"
+        icon="sparkles-outline"
         isDarkMode={isDarkMode}
       />
 
@@ -73,6 +77,11 @@ export function AIFeedbackScreen({
         onPress={onGenerateReview}
         style={({ pressed }) => [styles.generateBtn, pressed && styles.pressed]}
       >
+        <Ionicons
+          name={isReviewLoading ? "hourglass-outline" : "sparkles-outline"}
+          size={18}
+          color="#FFFFFF"
+        />
         <Text style={styles.generateBtnLabel}>
           {isReviewLoading ? "Generating..." : "Generate Daily Review"}
         </Text>
@@ -83,9 +92,7 @@ export function AIFeedbackScreen({
       {reviewData ? (
         <FormCard isDarkMode={isDarkMode}>
           <View style={styles.cautionRow}>
-            <Text
-              style={[styles.cardTitle, isDarkMode && styles.textPrimaryDark]}
-            >
+            <Text style={[styles.cardTitle, { color: palette.textPrimary }]}>
               Review
             </Text>
             <View
@@ -104,7 +111,7 @@ export function AIFeedbackScreen({
             </View>
           </View>
 
-          <Text style={[styles.summary, isDarkMode && styles.textPrimaryDark]}>
+          <Text style={[styles.summary, { color: palette.textPrimary }]}>
             {reviewData.summary}
           </Text>
 
@@ -146,24 +153,23 @@ function ReviewSection({
   emptyText,
   isDarkMode,
 }: ReviewSectionProps) {
+  const { palette } = useAppTheme();
   return (
     <>
-      <Text style={[styles.sectionTitle, isDarkMode && styles.textPrimaryDark]}>
+      <Text style={[styles.sectionTitle, { color: palette.textPrimary }]}>
         {title}
       </Text>
       {items.length ? (
         items.map((line) => (
           <Text
             key={line}
-            style={[styles.bullet, isDarkMode && styles.textSecondaryDark]}
+            style={[styles.bullet, { color: palette.textSecondary }]}
           >
             • {line}
           </Text>
         ))
       ) : emptyText ? (
-        <Text
-          style={[styles.emptyText, isDarkMode && styles.textSecondaryDark]}
-        >
+        <Text style={[styles.emptyText, { color: palette.textSecondary }]}>
           {emptyText}
         </Text>
       ) : null}
@@ -185,11 +191,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 12,
     marginBottom: 8,
+    flexDirection: "row",
+    gap: 8,
   },
   generateBtnLabel: { color: "#FFFFFF", fontWeight: "700" },
   errorText: { color: theme.colors.danger, marginTop: 10, marginBottom: 6 },
   cardTitle: {
-    color: theme.colors.textPrimary,
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 12,
@@ -209,19 +216,15 @@ const styles = StyleSheet.create({
   cautionMedium: { backgroundColor: "#DBA840" },
   cautionHigh: { backgroundColor: "#D8605E" },
   summary: {
-    color: theme.colors.textPrimary,
     lineHeight: 22,
     marginBottom: 10,
   },
   sectionTitle: {
     marginTop: 8,
     marginBottom: 4,
-    color: theme.colors.textPrimary,
     fontWeight: "700",
   },
-  bullet: { color: theme.colors.textSecondary, lineHeight: 20 },
-  emptyText: { color: theme.colors.textSecondary, fontSize: 13 },
-  textPrimaryDark: { color: theme.dark.textPrimary },
-  textSecondaryDark: { color: theme.dark.textSecondary },
+  bullet: { lineHeight: 20 },
+  emptyText: { fontSize: 13 },
   pressed: { opacity: 0.8, transform: [{ scale: 0.98 }] },
 });

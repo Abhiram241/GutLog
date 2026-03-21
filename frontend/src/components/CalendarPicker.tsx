@@ -10,6 +10,7 @@ import React, { useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { theme } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 import { formatDateKey } from "../utils/date";
 
 interface CalendarPickerProps {
@@ -45,6 +46,8 @@ export function CalendarPicker({
   onClose,
   isDarkMode = false,
 }: CalendarPickerProps) {
+  const { palette } = useAppTheme();
+
   const parsedSelected = new Date(`${selectedDate}T12:00:00`);
   const isValidDate = !isNaN(parsedSelected.getTime());
   const fallback = new Date();
@@ -81,16 +84,6 @@ export function CalendarPicker({
   ];
   while (cells.length % 7 !== 0) cells.push(null);
 
-  const bg = isDarkMode ? theme.dark.surface : theme.colors.surface;
-  const headerBg = isDarkMode ? theme.dark.surfaceMuted : "#F4EEE7";
-  const textPrimary = isDarkMode
-    ? theme.dark.textPrimary
-    : theme.colors.textPrimary;
-  const textSecondary = isDarkMode
-    ? theme.dark.textSecondary
-    : theme.colors.textSecondary;
-  const borderColor = isDarkMode ? theme.dark.border : "#ECE4DB";
-
   return (
     <Modal
       visible={visible}
@@ -100,10 +93,15 @@ export function CalendarPicker({
     >
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable
-          style={[styles.card, { backgroundColor: bg, borderColor }]}
+          style={[
+            styles.card,
+            { backgroundColor: palette.surface, borderColor: palette.border },
+          ]}
           onPress={() => undefined}
         >
-          <View style={[styles.header, { backgroundColor: headerBg }]}>
+          <View
+            style={[styles.header, { backgroundColor: palette.surfaceMuted }]}
+          >
             <Pressable
               onPress={() => shiftMonth(-1)}
               style={({ pressed }) => [
@@ -111,9 +109,13 @@ export function CalendarPicker({
                 pressed && styles.pressed,
               ]}
             >
-              <Feather name="chevron-left" size={20} color={textPrimary} />
+              <Feather
+                name="chevron-left"
+                size={20}
+                color={palette.textPrimary}
+              />
             </Pressable>
-            <Text style={[styles.monthLabel, { color: textPrimary }]}>
+            <Text style={[styles.monthLabel, { color: palette.textPrimary }]}>
               {MONTHS[viewMonth]} {viewYear}
             </Text>
             <Pressable
@@ -123,7 +125,11 @@ export function CalendarPicker({
                 pressed && styles.pressed,
               ]}
             >
-              <Feather name="chevron-right" size={20} color={textPrimary} />
+              <Feather
+                name="chevron-right"
+                size={20}
+                color={palette.textPrimary}
+              />
             </Pressable>
           </View>
 
@@ -131,7 +137,7 @@ export function CalendarPicker({
             {DAYS.map((d) => (
               <Text
                 key={d}
-                style={[styles.dayHeader, { color: textSecondary }]}
+                style={[styles.dayHeader, { color: palette.textSecondary }]}
               >
                 {d}
               </Text>
@@ -167,10 +173,8 @@ export function CalendarPicker({
                       styles.cellText,
                       {
                         color: isFuture
-                          ? isDarkMode
-                            ? theme.dark.textMuted
-                            : theme.colors.textMuted
-                          : textPrimary,
+                          ? palette.textMuted
+                          : palette.textPrimary,
                       },
                       isSelected && styles.cellTextSelected,
                       isToday && !isSelected && { color: theme.colors.primary },
@@ -187,11 +191,13 @@ export function CalendarPicker({
             onPress={onClose}
             style={({ pressed }) => [
               styles.cancelBtn,
-              { borderColor },
+              { borderColor: palette.border },
               pressed && styles.pressed,
             ]}
           >
-            <Text style={[styles.cancelLabel, { color: textSecondary }]}>
+            <Text
+              style={[styles.cancelLabel, { color: palette.textSecondary }]}
+            >
               Cancel
             </Text>
           </Pressable>

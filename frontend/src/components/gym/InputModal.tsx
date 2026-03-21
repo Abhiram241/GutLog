@@ -4,7 +4,7 @@
  * Cross-platform text input modal (replacement for Alert.prompt which is iOS-only).
  */
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Modal,
   StyleSheet,
@@ -14,9 +14,9 @@ import {
   View,
   KeyboardAvoidingView,
   Platform,
-} from 'react-native';
+} from "react-native";
 
-import { theme } from '../../constants/theme';
+import { theme } from "../../constants/theme";
 
 interface InputModalProps {
   visible: boolean;
@@ -34,7 +34,7 @@ export function InputModal({
   title,
   message,
   placeholder,
-  defaultValue = '',
+  defaultValue = "",
   isDarkMode,
   onCancel,
   onSubmit,
@@ -43,12 +43,12 @@ export function InputModal({
 
   const handleSubmit = () => {
     onSubmit(value);
-    setValue('');
+    setValue("");
   };
 
   const handleCancel = () => {
     onCancel();
-    setValue('');
+    setValue("");
   };
 
   return (
@@ -59,7 +59,7 @@ export function InputModal({
       onRequestClose={handleCancel}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.overlay}
       >
         <View style={styles.backdrop}>
@@ -68,7 +68,9 @@ export function InputModal({
               {title}
             </Text>
             {message && (
-              <Text style={[styles.message, isDarkMode && styles.textSecondary]}>
+              <Text
+                style={[styles.message, isDarkMode && styles.textSecondary]}
+              >
                 {message}
               </Text>
             )}
@@ -110,33 +112,33 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   content: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.xl,
     padding: theme.spacing.xl,
-    width: '100%',
+    width: "100%",
     maxWidth: 340,
-    ...theme.shadow.lg,
+    ...theme.shadow.md,
   },
   contentDark: {
     backgroundColor: theme.dark.surface,
   },
   title: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: theme.colors.textPrimary,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: theme.spacing.sm,
   },
   message: {
     fontSize: 14,
     color: theme.colors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: theme.spacing.lg,
   },
   textPrimary: {
@@ -160,33 +162,33 @@ const styles = StyleSheet.create({
     color: theme.dark.textPrimary,
   },
   buttons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: theme.spacing.md,
   },
   button: {
     flex: 1,
     paddingVertical: theme.spacing.md,
     borderRadius: theme.radius.full,
-    alignItems: 'center',
+    alignItems: "center",
     minHeight: 48,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   cancelButton: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     borderWidth: 1,
     borderColor: theme.colors.textMuted,
   },
   cancelText: {
     color: theme.colors.textSecondary,
-    fontWeight: '600',
+    fontWeight: "600",
     fontSize: 16,
   },
   submitButton: {
-    backgroundColor: '#4ECDC4',
+    backgroundColor: "#4ECDC4",
   },
   submitText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: "#FFFFFF",
+    fontWeight: "700",
     fontSize: 16,
   },
 });

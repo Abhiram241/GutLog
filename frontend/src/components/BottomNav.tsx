@@ -2,20 +2,21 @@
  * BottomNav.tsx
  *
  * The 5-tab bottom navigation bar.
- * Pure UI component — receives active tab and a callback, renders icons/labels.
+ * Uses ThemeContext for colors.
  */
 
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { useAppTheme } from "../context/ThemeContext";
 import { theme } from "../constants/theme";
 import { AppTab } from "../types";
 
 interface BottomNavProps {
   activeTab: AppTab;
   onTabPress: (tab: AppTab) => void;
-  isDarkMode?: boolean;
+  isDarkMode?: boolean; // kept for backward compat, ignored
 }
 
 const tabs: {
@@ -62,20 +63,22 @@ const tabs: {
   },
 ];
 
-export function BottomNav({
-  activeTab,
-  onTabPress,
-  isDarkMode = false,
-}: BottomNavProps) {
+export function BottomNav({ activeTab, onTabPress }: BottomNavProps) {
+  const { palette } = useAppTheme();
+
   return (
-    <View style={[styles.container, isDarkMode && styles.containerDark]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: palette.surface,
+          borderTopColor: palette.border,
+        },
+      ]}
+    >
       {tabs.map((tab) => {
         const isFocused = activeTab === tab.key;
-        const tintColor = isFocused
-          ? theme.colors.primary
-          : isDarkMode
-            ? theme.dark.textMuted
-            : theme.colors.textMuted;
+        const tintColor = isFocused ? theme.colors.primary : palette.textMuted;
 
         return (
           <Pressable
@@ -113,7 +116,7 @@ export function BottomNav({
             <Text
               style={[
                 styles.label,
-                isDarkMode && styles.labelDark,
+                { color: isFocused ? theme.colors.primary : palette.textMuted },
                 isFocused && styles.labelFocused,
               ]}
             >
@@ -131,9 +134,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: theme.colors.surface,
     borderTopWidth: 1,
-    borderTopColor: "#F1EEEA",
     paddingHorizontal: theme.spacing.md,
     paddingTop: theme.spacing.sm,
     paddingBottom: theme.spacing.lg,
@@ -142,10 +143,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 4,
-  },
-  containerDark: {
-    backgroundColor: theme.dark.surface,
-    borderTopColor: theme.dark.border,
   },
   tab: {
     minHeight: 44,
@@ -162,15 +159,10 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 11,
-    color: theme.colors.textMuted,
     fontWeight: "500",
     letterSpacing: 0.2,
   },
   labelFocused: {
-    color: theme.colors.primary,
     fontWeight: "600",
-  },
-  labelDark: {
-    color: theme.dark.textMuted,
   },
 });

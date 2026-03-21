@@ -21,6 +21,7 @@ import { FormCard } from "../components/FormCard";
 import { ProgressRing } from "../components/ProgressRing";
 import { ScreenHeader } from "../components/ScreenHeader";
 import { theme } from "../constants/theme";
+import { useAppTheme } from "../context/ThemeContext";
 import { DayLog, MedItem } from "../types";
 import { createEmptyDayLog } from "../utils/logHelpers";
 
@@ -55,6 +56,7 @@ export function MedsScreen({
   onUpdateMedTime,
 }: MedsScreenProps) {
   const insets = useSafeAreaInsets();
+  const { palette } = useAppTheme();
   const takenCount = medsMaster.filter(
     (med) => currentLog.medsTaken[med.id]?.taken,
   ).length;
@@ -70,6 +72,7 @@ export function MedsScreen({
           <ScreenHeader
             title="Meds & Supplements"
             subtitle="Daily checklist and dosage tracking"
+            icon="medkit-outline"
             isDarkMode={isDarkMode}
           />
 
@@ -85,20 +88,13 @@ export function MedsScreen({
             <View
               style={[
                 styles.hintCard,
-                isDarkMode && { backgroundColor: theme.dark.surfaceMuted },
+                { backgroundColor: palette.surfaceMuted },
               ]}
             >
-              <Text
-                style={[styles.hintTitle, isDarkMode && styles.textPrimaryDark]}
-              >
+              <Text style={[styles.hintTitle, { color: palette.textPrimary }]}>
                 Today status
               </Text>
-              <Text
-                style={[
-                  styles.hintBody,
-                  isDarkMode && styles.textSecondaryDark,
-                ]}
-              >
+              <Text style={[styles.hintBody, { color: palette.textSecondary }]}>
                 Stay consistent with your supplements and medicines.
               </Text>
             </View>
@@ -106,38 +102,62 @@ export function MedsScreen({
 
           {/* Add med form */}
           <FormCard isDarkMode={isDarkMode}>
-            <Text
-              style={[styles.cardTitle, isDarkMode && styles.textPrimaryDark]}
-            >
-              Add medication or supplement
-            </Text>
+            <View style={styles.cardTitleRow}>
+              <Ionicons
+                name="add-circle-outline"
+                size={18}
+                color={theme.colors.primary}
+              />
+              <Text style={[styles.cardTitle, { color: palette.textPrimary }]}>
+                Add medication or supplement
+              </Text>
+            </View>
             <TextInput
               value={medName}
               onChangeText={onMedNameChange}
               placeholder="Name (ex: Mesalamine)"
-              placeholderTextColor={theme.colors.textMuted}
-              style={[styles.input, isDarkMode && styles.inputDark]}
+              placeholderTextColor={palette.textMuted}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: palette.inputBg,
+                  borderColor: palette.inputBorder,
+                  color: palette.textPrimary,
+                },
+              ]}
             />
             <TextInput
               value={medTime}
               onChangeText={onMedTimeChange}
               placeholder="Time HH:MM"
-              placeholderTextColor={theme.colors.textMuted}
-              style={[styles.input, isDarkMode && styles.inputDark]}
+              placeholderTextColor={palette.textMuted}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: palette.inputBg,
+                  borderColor: palette.inputBorder,
+                  color: palette.textPrimary,
+                },
+              ]}
             />
             <Pressable
               onPress={onAddMed}
               style={({ pressed }) => [
                 styles.button,
-                isDarkMode && styles.buttonDark,
+                {
+                  backgroundColor: palette.surfaceMuted,
+                  borderColor: palette.border,
+                },
                 pressed && styles.pressed,
               ]}
             >
+              <Ionicons
+                name="add-circle-outline"
+                size={16}
+                color={palette.textPrimary}
+              />
               <Text
-                style={[
-                  styles.buttonLabel,
-                  isDarkMode && styles.buttonLabelDark,
-                ]}
+                style={[styles.buttonLabel, { color: palette.textPrimary }]}
               >
                 Add to checklist
               </Text>
@@ -148,9 +168,7 @@ export function MedsScreen({
       data={medsMaster}
       keyExtractor={(item) => item.id}
       ListEmptyComponent={
-        <Text
-          style={[styles.emptyText, isDarkMode && styles.textSecondaryDark]}
-        >
+        <Text style={[styles.emptyText, { color: palette.textSecondary }]}>
           No meds added yet.
         </Text>
       }
@@ -160,7 +178,15 @@ export function MedsScreen({
           timeTaken: med.preferredTime,
         };
         return (
-          <View style={[styles.medRow, isDarkMode && styles.medRowDark]}>
+          <View
+            style={[
+              styles.medRow,
+              {
+                backgroundColor: palette.surfaceElevated,
+                borderColor: palette.border,
+              },
+            ]}
+          >
             <Pressable
               onPress={() => onToggleMedTaken(med.id)}
               style={({ pressed }) => [
@@ -172,22 +198,27 @@ export function MedsScreen({
               <Ionicons
                 name={state.taken ? "checkmark" : "ellipse-outline"}
                 size={16}
-                color={state.taken ? "#FFFFFF" : theme.colors.textSecondary}
+                color={state.taken ? "#FFFFFF" : palette.textSecondary}
               />
             </Pressable>
 
             <View style={styles.medDetails}>
-              <Text
-                style={[styles.medName, isDarkMode && styles.textPrimaryDark]}
-              >
+              <Text style={[styles.medName, { color: palette.textPrimary }]}>
                 {med.name}
               </Text>
               <TextInput
                 value={state.timeTaken}
                 onChangeText={(value) => onUpdateMedTime(med.id, value)}
                 placeholder="HH:MM"
-                placeholderTextColor={theme.colors.textMuted}
-                style={[styles.timeInput, isDarkMode && styles.inputDark]}
+                placeholderTextColor={palette.textMuted}
+                style={[
+                  styles.timeInput,
+                  {
+                    backgroundColor: palette.inputBg,
+                    borderColor: palette.inputBorder,
+                    color: palette.textPrimary,
+                  },
+                ]}
               />
             </View>
 
@@ -226,7 +257,6 @@ const styles = StyleSheet.create({
   },
   hintCard: {
     flex: 1,
-    backgroundColor: "#F3ECFF",
     borderRadius: theme.radius.lg,
     padding: theme.spacing.md,
     minHeight: 110,
@@ -238,59 +268,46 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 6,
   },
-  hintBody: { color: "#6D6480", fontSize: 13, lineHeight: 19 },
-  cardTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: 20,
-    fontWeight: "700",
+  hintBody: { fontSize: 13, lineHeight: 19 },
+  cardTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     marginBottom: 12,
   },
+  cardTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+  },
   input: {
-    backgroundColor: "#FAF8F6",
     borderRadius: theme.radius.md,
     borderWidth: 1,
-    borderColor: "#ECE4DB",
-    color: theme.colors.textPrimary,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
     minHeight: 46,
     marginBottom: 8,
   },
-  inputDark: {
-    backgroundColor: theme.dark.inputBg,
-    borderColor: theme.dark.inputBorder,
-    color: theme.dark.textPrimary,
-  },
   button: {
     marginTop: 10,
-    backgroundColor: theme.colors.sageSoft,
     borderRadius: theme.radius.full,
     paddingVertical: 13,
     minHeight: 44,
     alignItems: "center",
-  },
-  buttonDark: {
-    backgroundColor: theme.dark.surfaceMuted,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
     borderWidth: 1,
-    borderColor: theme.dark.border,
   },
-  buttonLabel: { color: "#4A5D4F", fontWeight: "700", fontSize: 14 },
-  buttonLabelDark: { color: theme.dark.textPrimary },
+  buttonLabel: { fontWeight: "700", fontSize: 14 },
   medRow: {
-    backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.md,
     borderWidth: 1,
-    borderColor: "#ECE4DB",
     marginBottom: theme.spacing.sm,
     padding: 12,
     flexDirection: "row",
     gap: 10,
     alignItems: "center",
-  },
-  medRowDark: {
-    backgroundColor: theme.dark.surfaceElevated,
-    borderColor: theme.dark.border,
   },
   tick: {
     width: 36,
@@ -305,15 +322,12 @@ const styles = StyleSheet.create({
   },
   tickActive: { backgroundColor: "#A086D3", borderColor: "#A086D3" },
   medDetails: { flex: 1 },
-  medName: { color: theme.colors.textPrimary, fontWeight: "700", fontSize: 15 },
+  medName: { fontWeight: "700", fontSize: 15 },
   timeInput: {
-    backgroundColor: "#FAF8F6",
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#ECE4DB",
     paddingHorizontal: 10,
     paddingVertical: 8,
-    color: theme.colors.textPrimary,
     maxWidth: 96,
   },
   deleteBtn: {
@@ -325,8 +339,6 @@ const styles = StyleSheet.create({
     minWidth: 44,
     minHeight: 44,
   },
-  emptyText: { color: theme.colors.textSecondary, fontSize: 13 },
-  textPrimaryDark: { color: theme.dark.textPrimary },
-  textSecondaryDark: { color: theme.dark.textSecondary },
+  emptyText: { fontSize: 13 },
   pressed: { opacity: 0.8, transform: [{ scale: 0.98 }] },
 });

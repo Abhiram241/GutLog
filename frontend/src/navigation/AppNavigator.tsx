@@ -2,17 +2,19 @@
  * AppNavigator.tsx
  *
  * Root navigation component. Wires all screens, hooks, and shared state together.
- * This is the single place where hooks are called and props are distributed to screens.
+ * Now includes Gym Tracker mode toggle and integration.
  *
  * Architecture:
  *   AppNavigator (state + hooks)
- *     ├── HomeScreen (UI only)
- *     ├── MedsScreen (UI only)
- *     ├── WaterScreen (UI only)
- *     ├── StoolScreen (UI only)
- *     ├── SettingsScreen (UI only)
- *     ├── AIFeedbackScreen (UI only)
- *     └── SuspiciousFoodsScreen (UI only)
+ *     ├── GymNavigator (when gym mode is active)
+ *     └── GutLogs Screens:
+ *         ├── HomeScreen (UI only)
+ *         ├── MedsScreen (UI only)
+ *         ├── WaterScreen (UI only)
+ *         ├── StoolScreen (UI only)
+ *         ├── SettingsScreen (UI only)
+ *         ├── AIFeedbackScreen (UI only)
+ *         └── SuspiciousFoodsScreen (UI only)
  */
 
 import { StatusBar } from "expo-status-bar";
@@ -34,6 +36,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AddFoodModal } from "../components/AddFoodModal";
 import { BottomNav } from "../components/BottomNav";
 import { CalendarPicker } from "../components/CalendarPicker";
+import { GymModeToggle } from "../components/gym/GymModeToggle";
 import { useAIReview } from "../hooks/useAIReview";
 import { useAppData } from "../hooks/useAppData";
 import { useMeals } from "../hooks/useMeals";
@@ -47,12 +50,16 @@ import { SettingsScreen } from "../screens/SettingsScreen";
 import { StoolScreen } from "../screens/StoolScreen";
 import { SuspiciousFoodsScreen } from "../screens/SuspiciousFoodsScreen";
 import { WaterScreen } from "../screens/WaterScreen";
+import { GymNavigator } from "./GymNavigator";
 import {
   exportBackup,
   importBackup,
   writeBackup,
 } from "../services/backupService";
-import { saveSettings } from "../services/storageService";
+import {
+  getGymModeEnabled,
+  setGymModeEnabled,
+} from "../services/gymStorageService";
 import { AppTab, ExtraPage } from "../types";
 import { shiftDateKey } from "../utils/date";
 import { createEmptyDayLog } from "../utils/logHelpers";
@@ -70,6 +77,10 @@ export function AppNavigator() {
   >(null);
   const [settingsMessage, setSettingsMessage] = useState("");
   const [backupMessage, setBackupMessage] = useState("");
+
+  // ─── Gym Mode State ────────────────────────────────────────────────────────────
+  const [isGymMode, setIsGymMode] = useState(false);
+  const [gymModeLoaded, setGymModeLoaded] = useState(false);
 
   // ─── Data & theme hooks ──────────────────────────────────────────────────────
   const {
@@ -92,6 +103,19 @@ export function AppNavigator() {
   useEffect(() => {
     if (todayKey && !currentDateKey) setCurrentDateKey(todayKey);
   }, [todayKey, currentDateKey]);
+
+  // Load gym mode state on mount
+  useEffect(() => {
+    const loadGymMode = async () => {
+      try {
+        const enabled = await getGymModeEnabled();
+        setIsGymMode(enabled);
+      } finally {
+        setGymModeLoaded(true);
+      }
+    };
+    void loadGymMode();
+  }, []);
 
   // ─── Feature hooks ───────────────────────────────────────────────────────────
   const meals = useMeals({ currentDateKey, settings, updateLog });
@@ -123,6 +147,13 @@ export function AppNavigator() {
       hideSub.remove();
     };
   }, []);
+
+  // ─── Gym Mode Toggle ─────────────────────────────────────────────────────────
+  const handleToggleGymMode = useCallback(async () => {
+    const newValue = !isGymMode;
+    setIsGymMode(newValue);
+    await setGymModeEnabled(newValue);
+  }, [isGymMode]);
 
   // ─── Settings handlers ───────────────────────────────────────────────────────
   const handleSaveApiKey = useCallback(async () => {
@@ -193,7 +224,7 @@ export function AppNavigator() {
   }, [resetToday, todayKey]);
 
   // ─── Loading state ───────────────────────────────────────────────────────────
-  if (isLoading || showBootSpinner || !currentDateKey) {
+  if (isLoading || showBootSpinner || !currentDateKey || !gymModeLoaded) {
     return (
       <SafeAreaView
         style={[styles.safeArea, { backgroundColor: palette.background }]}
@@ -214,6 +245,16 @@ export function AppNavigator() {
           </Text>
         </View>
       </SafeAreaView>
+    );
+  }
+
+  // ─── Gym Mode ────────────────────────────────────────────────────────────────
+  if (isGymMode) {
+    return (
+      <GymNavigator
+        themePreference={settings.themePreference}
+        onExitGymMode={handleToggleGymMode}
+      />
     );
   }
 
@@ -358,6 +399,17 @@ export function AppNavigator() {
         <View
           style={[styles.container, { backgroundColor: palette.background }]}
         >
+          {/* Gym Mode Toggle - shown on home screen */}
+          {activeTab === "home" && !extraPage && (
+            <View style={styles.gymToggleContainer}>
+              <GymModeToggle
+                isGymMode={isGymMode}
+                onToggle={handleToggleGymMode}
+                isDarkMode={isDarkMode}
+              />
+            </View>
+          )}
+
           {/* Back button for extra pages */}
           {extraPage ? (
             <View
@@ -444,6 +496,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loaderText: { color: theme.colors.textSecondary, fontSize: 14 },
+  gymToggleContainer: {
+    position: "absolute",
+    top: theme.spacing.md,
+    right: theme.spacing.lg,
+    zIndex: 100,
+  },
   extraHeader: {
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.sm,

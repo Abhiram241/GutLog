@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "GutLogs",
-    "slug": "gutlogs",
+    "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,15 +9,16 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.abhiram24x.gutlogs"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#000"
+        "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.abhiram24x.frontend"
+      "package": "com.abhiram24x.gutlogs"
     },
     "web": {
       "bundler": "metro",
@@ -34,7 +35,14 @@
           "resizeMode": "contain",
           "backgroundColor": "#151824"
         }
-      ]
+      ],
+      [
+        "expo-background-fetch",
+        {
+          "backgroundFetchPermission": "always"
+        }
+      ],
+      "expo-document-picker"
     ],
     "experiments": {
       "typedRoutes": true
